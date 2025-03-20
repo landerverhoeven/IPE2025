@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Optimization Project for PV System Calculations
 
 ## Overview
@@ -47,3 +48,9 @@ This project requires the following Python libraries:
 - matplotlib
 
 Ensure that these libraries are installed in your Python environment.
+=======
+1) 'git pull origin main' to pull files
+2) to save changes made "git add .'
+3) 'git commit -m "something random"'
+4) 'git push origin main'
+>>>>>>> ac309b26cc37695affb73b0fa6afbb7c0ed75d65
