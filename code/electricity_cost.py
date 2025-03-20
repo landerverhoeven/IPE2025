@@ -34,18 +34,21 @@ def dynamic_electricity_cost(index, kW_peak, load_consumption, vat_tarrif):
 
     return formula_for_electricity
 
-# Read data from files
-index_data = pd.read_csv('index_data.csv')  # File with date-time and index values
-load_consumption_data = pd.read_csv('load_consumption_data.csv')  # File with date-time and consumption values
+# Read data from Excel files
+index_data = pd.read_excel('index_data.xlsx')  # File with date-time and index values
+load_consumption_data = pd.read_excel('load_consumption_data.xlsx')  # File with date-time and consumption values
 
 # Read load profile to calculate kW_peak
 load_profile = pd.read_excel('load_profile_8.xlsx')  # File with date-time and consumption values
 load_profile['date_time'] = pd.to_datetime(load_profile['date_time'])
 load_profile['month'] = load_profile['date_time'].dt.to_period('M')
 
+# Convert kWh to kW for kW_peak calculation (assuming hourly data)
+load_profile['load_consumption_kw'] = load_profile['load_consumption_kwh'] / 1  # 1 hour assumed
+
 # Calculate kW_peak for each month
-monthly_kW_peak = load_profile.groupby('month')['load_consumption'].max().reset_index()
-monthly_kW_peak.rename(columns={'load_consumption': 'kW_peak'}, inplace=True)
+monthly_kW_peak = load_profile.groupby('month')['load_consumption_kw'].max().reset_index()
+monthly_kW_peak.rename(columns={'load_consumption_kw': 'kW_peak'}, inplace=True)
 
 # Ensure the data is aligned by date-time
 data = pd.merge(index_data, load_consumption_data, on='date_time', suffixes=('_index', '_load'))
