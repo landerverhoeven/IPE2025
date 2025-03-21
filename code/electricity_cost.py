@@ -34,12 +34,14 @@ def dynamic_electricity_cost(index, kW_peak, load_consumption, vat_tarrif):
 
     return formula_for_electricity
 
+
+
 # Read data from files
-index_data = pd.read_csv('index_data.csv')  # File with date-time and index values
-load_consumption_data = pd.read_csv('load_consumption_data.csv')  # File with date-time and consumption values
+index_data = pd.read_excel('data\Belpex_data.xlsx')  # File with date-time and index values
+load_consumption_data = pd.read_excel('data\Load_profile_8.xlsx')  # File with date-time and consumption values
 
 # Read load profile to calculate kW_peak
-load_profile = pd.read_excel('load_profile_8.xlsx')  # File with date-time and consumption values
+load_profile = pd.read_excel('data\Load_profile_8.xlsx')  # File with date-time and consumption values
 load_profile['date_time'] = pd.to_datetime(load_profile['date_time'])
 load_profile['month'] = load_profile['date_time'].dt.to_period('M')
 
@@ -62,3 +64,4 @@ data['electricity_cost'] = data.apply(
 
 # Save the results to a new file
 data.to_csv('electricity_cost_results.csv', index=False)
+
