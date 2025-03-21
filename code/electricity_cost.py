@@ -35,8 +35,8 @@ def dynamic_electricity_cost(index, kW_peak, load_consumption, vat_tarrif):
     return formula_for_electricity
 
 # Read data from Excel files
-index_data = pd.read_excel('index_data.xlsx')  # File with date-time and index values
-load_consumption_data = pd.read_excel('load_consumption_data.xlsx')  # File with date-time and consumption values
+index_data = pd.read_excel('data/Belpex_data.xlsx')  # File with date-time and index values
+load_profile = pd.read_excel('Load_profile_8.xlsx')  # File with date-time and consumption values
 
 # Read load profile to calculate kW_peak
 load_profile = pd.read_excel('load_profile_8.xlsx')  # File with date-time and consumption values
@@ -51,7 +51,7 @@ monthly_kW_peak = load_profile.groupby('month')['load_consumption_kw'].max().res
 monthly_kW_peak.rename(columns={'load_consumption_kw': 'kW_peak'}, inplace=True)
 
 # Ensure the data is aligned by date-time
-data = pd.merge(index_data, load_consumption_data, on='date_time', suffixes=('_index', '_load'))
+data = pd.merge(index_data, load_profile, on='date_time', suffixes=('_index', '_load'))
 data['date_time'] = pd.to_datetime(data['date_time'])
 data['month'] = data['date_time'].dt.to_period('M')
 
