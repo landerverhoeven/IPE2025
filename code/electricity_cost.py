@@ -18,7 +18,7 @@ def dynamic_electricity_cost(index, kW_peak, load_consumption, vat_tarrif):
     income_energy_injected = (0.1 * index - 1.3050) * vat_tarrif / 100
 
     # Network costs
-    capacity_tarrif = 51.9852 * kW_peak
+    capacity_tarrif = 51.9852 * kW_peak # VREG says these are the prices for Fluvius midden-Vlaanderen, maybe it makes more sense to use Fluvius Zenne-Dijle bcs Leuven is part of that?
     take_off_fee = 5.60719 / 100
     data_management_fee = 18.56
 
