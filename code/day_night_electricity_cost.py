@@ -11,8 +11,7 @@ def day_night_electricity_cost(price_day, price_night, load_consumption, vat_tar
     load_consumption['network_costs_per_15min'] = 0
     load_consumption['taxes'] = 0
     load_consumption['total_cost_per_15min'] = 0
-
-    # load_consumption['income_energy_injected'] = 0
+    load_consumption['income_energy_injected'] = 0
 
     # Calculate kW_peak
     kw_peak_sum = 0
