@@ -22,3 +22,5 @@ def power_difference_if_generated_is_larger():
 # Example usage
 difference_data = power_difference_if_generated_is_larger()
 print(difference_data)
+# Save the results to a new file
+difference_data.to_excel('results/power_difference_if_generated_is_larger.xlsx', index=False)
