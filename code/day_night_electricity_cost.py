@@ -15,8 +15,8 @@ def day_night_electricity_cost(price_day, price_night, load_consumption, vat_tar
 
     # Calculate kW_peak
     kw_peak_sum = 0
-    for month in load_consumption['date_time'].dt.month.unique():
-        kw_peak_month = load_consumption[load_consumption['date_time'].dt.month == month]['load_consumption'].max()
+    for month in load_consumption['Datum_Startuur'].dt.month.unique():
+        kw_peak_month = load_consumption[load_consumption['Datum_Startuur'].dt.month == month]['Volume_Afname_kWh'].max()
 #        #print(f'Month {month}: kW_peak_month = {kw_peak_month}')
         kw_peak_sum = kw_peak_sum + kw_peak_month
     kw_peak = kw_peak_sum / 12 * 4  # Average kW_peak per quarter hour
@@ -24,9 +24,9 @@ def day_night_electricity_cost(price_day, price_night, load_consumption, vat_tar
 
     # Calculate the electricity cost based on day and night tariffs
     load_consumption['electricity_cost'] = np.where(
-        load_consumption['date_time'].apply(is_daytime),
-        price_day * load_consumption['load_consumption'],
-        price_night * load_consumption['load_consumption'])
+        load_consumption['Datum_Startuur'].apply(is_daytime),
+        price_day * load_consumption['Volume_Afname_kWh'],
+        price_night * load_consumption['Volume_Afname_kWh'])
     
     # fixed fee
     fixed_fee = 20
@@ -43,8 +43,8 @@ def day_night_electricity_cost(price_day, price_night, load_consumption, vat_tar
 
 
     # calculate all cost per 15min
-    load_consumption['network_costs_per_15min'] = take_off_fee * load_consumption['load_consumption']
-    load_consumption['taxes'] = (energy_contribution+federal_energy_tax) * load_consumption['load_consumption'] # no taxes on income energy contribution
+    load_consumption['network_costs_per_15min'] = take_off_fee * load_consumption['Volume_Afname_kWh']
+    load_consumption['taxes'] = (energy_contribution+federal_energy_tax) * load_consumption['Volume_Afname_kWh'] # no taxes on income energy contribution
     load_consumption['total_cost_per_15min'] = load_consumption['electricity_cost'] + load_consumption['network_costs_per_15min'] + load_consumption['taxes']
 
 
@@ -76,7 +76,7 @@ price_night = 0.1180  # Example price for night
 load_profile = pd.read_excel('data\Load_profile_8.xlsx')  # File with date-time and consumption values
 
 # Convert the first column to date_time format
-load_profile['date_time'] = pd.to_datetime(load_profile.iloc[:, 0])
+load_profile['Datum_Startuur'] = pd.to_datetime(load_profile.iloc[:, 0])
 
 # Calculate day and night electricity cost
 load_profile, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, load_profile, vat_tarrif)
@@ -89,19 +89,19 @@ print('taxes:', totaltaxes, 'eur')
 print('total costs:', totalcost, 'eur')
 
 # Load day and night
-load_day = load_profile[load_profile['date_time'].apply(is_daytime)]
-load_night = load_profile[~load_profile['date_time'].apply(is_daytime)]
-print('day load:', load_day['load_consumption'].sum(), 'kWh')
-print('night load:', load_night['load_consumption'].sum(), 'kWh')
+load_day = load_profile[load_profile['Datum_Startuur'].apply(is_daytime)]
+load_night = load_profile[~load_profile['Datum_Startuur'].apply(is_daytime)]
+print('day load:', load_day['Volume_Afname_kWh'].sum(), 'kWh')
+print('night load:', load_night['Volume_Afname_kWh'].sum(), 'kWh')
 
 # Remove timezone information from date_time column
-load_profile['date_time'] = load_profile['date_time'].dt.tz_localize(None)
+load_profile['Datum_Startuur'] = load_profile['Datum_Startuur'].dt.tz_localize(None)
 
 # Save the results to a new file
 load_profile.to_excel('results\electricity_cost_results_day_night.xlsx', index=False)
 
 # Plot the total cost per 15min
-plt.plot(load_profile['date_time'], load_profile['total_cost_per_15min'])
+plt.plot(load_profile['Datum_Startuur'], load_profile['total_cost_per_15min'])
 plt.xlabel('Date Time')
 plt.ylabel('Total Cost per 15min')
 plt.title('Total Cost per 15min Over Time')
