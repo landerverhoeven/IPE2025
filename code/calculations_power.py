@@ -56,6 +56,6 @@ def power_output(N, beta, A, eta, phi_panel):
 
 def load_power():
     # Load data
-    load_data = pd.read_excel("data/Load_profile_8.xlsx", parse_dates=["date_time"])
-    load_data = load_data.resample('15min', on='date_time').mean().reset_index()
-    return load_data[["date_time", "load_consumption"]]
+    load_data = pd.read_excel("data/Load_profile_8.xlsx", parse_dates=["Datum_Startuur"])
+    load_data = load_data.resample('15min', on='Datum_Startuur').mean().reset_index()
+    return load_data[["Datum_Startuur", "Volume_Afname_kWh"]]

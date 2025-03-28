@@ -40,31 +40,31 @@ def calculate_total_dynamic_cost(belpex_data, load_profile):
 
     # Standardize datetime formats for load_profile
     load_profile = load_profile.copy()  # Avoid SettingWithCopyWarning
-    load_profile['date_time'] = pd.to_datetime(load_profile['date_time'], format='%Y-%m-%dT%H:%M:%S.%fZ', errors='coerce')
+    load_profile['Datum_Startuur'] = pd.to_datetime(load_profile['Datum_Startuur'], format='%Y-%m-%dT%H:%M:%S.%fZ', errors='coerce')
 
     # Drop rows with invalid datetime values (NaT) in load_profile
-    load_profile = load_profile.dropna(subset=['date_time']).copy()
+    load_profile = load_profile.dropna(subset=['Datum_Startuur']).copy()
 
     # Change the year of load_profile to 2000
-    load_profile['date_time'] = load_profile['date_time'].apply(lambda x: x.replace(year=2000))
+    load_profile['Datum_Startuur'] = load_profile['Datum_Startuur'].apply(lambda x: x.replace(year=2000))
 
     # Ensure both datasets cover the same datetime range
-    start_date = max(belpex_data['datetime'].min(), load_profile['date_time'].min())
-    end_date = min(belpex_data['datetime'].max(), load_profile['date_time'].max())
+    start_date = max(belpex_data['datetime'].min(), load_profile['Datum_Startuur'].min())
+    end_date = min(belpex_data['datetime'].max(), load_profile['Datum_Startuur'].max())
 
     belpex_data = belpex_data[(belpex_data['datetime'] >= start_date) & (belpex_data['datetime'] <= end_date)].copy()
-    load_profile = load_profile[(load_profile['date_time'] >= start_date) & (load_profile['date_time'] <= end_date)].copy()
+    load_profile = load_profile[(load_profile['Datum_Startuur'] >= start_date) & (load_profile['Datum_Startuur'] <= end_date)].copy()
 
     # Validate that both datasets are aligned
-    if not belpex_data['datetime'].equals(load_profile['date_time']):
+    if not belpex_data['datetime'].equals(load_profile['Datum_Startuur']):
         raise ValueError("The datetime columns in belpex_data and load_profile are not aligned.")
 
     # Calculate electricity cost for each 15-minute interval
     vat_tarrif = 1.06  # VAT tariff
     load_profile['electricity_cost'] = (
-        ((0.1 * belpex_data['Euro'].values + 1.316) * vat_tarrif / 100) * load_profile['load_consumption'] +  # Cost energy produced
-        (5.60719 / 100) * load_profile['load_consumption'] +  # Network costs
-        ((0.20417 / 100) + (5.03288 / 100)) * load_profile['load_consumption']  # Taxes
+        ((0.1 * belpex_data['Euro'].values + 1.316) * vat_tarrif / 100) * load_profile['Volume_Afname_kWh'] +  # Cost energy produced
+        (5.60719 / 100) * load_profile['Volume_Afname_kWh'] +  # Network costs
+        ((0.20417 / 100) + (5.03288 / 100)) * load_profile['Volume_Afname_kWh']  # Taxes
     )
 
     # Total dynamic costs
@@ -77,8 +77,8 @@ def calculate_total_dynamic_cost(belpex_data, load_profile):
     data_management_fee = 18.56  # Annual fee
 
     # Calculate kW_peak (maximum load in kW) for each month using 15-minute intervals
-    load_profile['Month'] = load_profile['date_time'].dt.month
-    load_profile['load_consumption_kw'] = load_profile['load_consumption'] / 0.25  # Convert kWh to kW (15 minutes = 0.25 hours)
+    load_profile['Month'] = load_profile['Datum_Startuur'].dt.month
+    load_profile['load_consumption_kw'] = load_profile['Volume_Afname_kWh'] / 0.25  # Convert kWh to kW (15 minutes = 0.25 hours)
     kW_peak_matrix = load_profile.groupby('Month')['load_consumption_kw'].max().reset_index()
     kW_peak_matrix.rename(columns={'load_consumption_kw': 'kW_peak'}, inplace=True)
 
@@ -111,4 +111,4 @@ if __name__ == "__main__":
     print(f"belpex_data rows after filtering: {len(belpex_data)}")
     print(f"load_profile rows after filtering: {len(load_profile)}")
     print("belpex_data datetime range:", belpex_data['datetime'].min(), "to", belpex_data['datetime'].max())
-    print("load_profile date_time range:", load_profile['date_time'].min(), "to", load_profile['date_time'].max())
+    print("load_profile date_time range:", load_profile['Datum_Startuur'].min(), "to", load_profile['Datum_Startuur'].max())
