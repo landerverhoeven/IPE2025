@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 
 def correct_belpex_data(belpex_data):
     belpex_data = belpex_data.copy()  # Avoid SettingWithCopyWarning
@@ -93,6 +94,9 @@ def correct_irradiance_data(irradiance_data):
 
 
 if __name__ == "__main__":
+    # Redirect standard output to a file
+    sys.stdout = open('output.txt', 'w')
+
     # Read data into memory
     belpex_data = pd.read_excel('data/Belpex_data.xlsx')  # File with date-time and index values
     print(f"Length of belpex_data before correction: {len(belpex_data)}")
@@ -118,3 +122,6 @@ if __name__ == "__main__":
     print("irradiance_data after resampling:")
     print(irradiance_data.head())
     print(irradiance_data.tail())
+
+    # Close the file
+    sys.stdout.close()
