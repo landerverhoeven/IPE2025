@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from calculations_power import power_output, load_power
+from calculations_power import power_output
 
-def average_power(N, beta, A, eta, phi_panel):
+
+def average_power(N, beta, A, eta, phi_panel, irradiance_data, load_profile):
     # Get power output and load data
-    power_output_data = power_output(N, beta, A, eta, phi_panel)
-    load_data = load_power()
+    power_output_data = power_output(N, beta, A, eta, phi_panel, irradiance_data)
 
     # Compute daily power output
     daily_power_output = power_output_data.groupby(power_output_data["DateTime"].dt.dayofyear)["Power_Output_kWh"].sum()
@@ -14,7 +14,7 @@ def average_power(N, beta, A, eta, phi_panel):
     average_daily_power_output = daily_power_output.groupby(daily_power_output.index).mean()
 
     # Compute daily load
-    daily_load = load_data.groupby(load_data["Datum_Startuur"].dt.dayofyear)["Volume_Afname_kWh"].sum()
+    daily_load = load_profile.groupby(load_profile["Datum_Startuur"].dt.dayofyear)["Volume_Afname_kWh"].sum()
 
     # Compute the mean daily load across all years
     average_daily_load = daily_load.groupby(daily_load.index).mean()

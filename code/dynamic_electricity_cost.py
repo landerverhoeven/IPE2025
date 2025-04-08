@@ -8,16 +8,6 @@ def calculate_total_dynamic_cost(belpex_data, load_profile):
     Returns the total cost.
     """
 
-    # Standardize datetime formats for load_profile
-    load_profile = load_profile.copy()  # Avoid SettingWithCopyWarning
-    load_profile['Datum_Startuur'] = pd.to_datetime(load_profile['Datum_Startuur'], format='%Y-%m-%dT%H:%M:%S.%fZ', errors='coerce')
-
-    # Drop rows with invalid datetime values (NaT) in load_profile
-    load_profile = load_profile.dropna(subset=['Datum_Startuur']).copy()
-
-    # Change the year of load_profile to 2000
-    load_profile['Datum_Startuur'] = load_profile['Datum_Startuur'].apply(lambda x: x.replace(year=2000))
-
     # Ensure both datasets cover the same datetime range
     start_date = max(belpex_data['datetime'].min(), load_profile['Datum_Startuur'].min())
     end_date = min(belpex_data['datetime'].max(), load_profile['Datum_Startuur'].max())

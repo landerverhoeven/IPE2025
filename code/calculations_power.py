@@ -1,17 +1,13 @@
 import pandas as pd
 import numpy as np
 
-def power_output(N, beta, A, eta, phi_panel):
+def power_output(N, beta, A, eta, phi_panel, irradiance_data):
     # Constants for PV system
     rho = 0.2  # Ground reflectance
     T_ref = 25  # Reference temperature (°C)
     temp_coeff = -0.004  # Temperature coefficient of efficiency (per °C)
     latitude = np.radians(50.93)  # Hasselt, Belgium (radians)
     longitude = 5.34
-    
-    # Load irradiance data
-    irradiance_data = pd.read_excel("data/Irradiance_data.xlsx", parse_dates=["DateTime"])
-    irradiance_data = irradiance_data.resample('15min', on='DateTime').mean().reset_index()
     
     # Extract necessary values
     local_time = irradiance_data["DateTime"].dt.hour + irradiance_data["DateTime"].dt.minute / 60
@@ -53,9 +49,3 @@ def power_output(N, beta, A, eta, phi_panel):
         day_of_year.values
     )
     return irradiance_data[["DateTime", "Power_Output_kWh"]]
-
-def load_power():
-    # Load data
-    load_data = pd.read_excel("data/Load_profile_8.xlsx", parse_dates=["Datum_Startuur"])
-    load_data = load_data.resample('15min', on='Datum_Startuur').mean().reset_index()
-    return load_data[["Datum_Startuur", "Volume_Afname_kWh"]]
