@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from calculations_power import power_output, load_power
 from average_power import average_power
 from day_night_electricity_cost import day_night_electricity_cost
 from day_night_electricity_cost import is_daytime
 from correct_data_files import correct_belpex_data, correct_load_profile, correct_irradiance_data
+from power_per_year import power_per_year
 
 # Constants for PV system
 beta = np.radians(20)  # Panel tilt angle (radians)
@@ -20,13 +20,13 @@ installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
 
 # Read and correct all the data files
-irradiance_data = correct_irradiance_data(pd.read_excel('data\\Irradiance_data.xlsx'))  # File with date-time and irradiance values
+power_output = correct_irradiance_data(N, beta, A, eta, phi_panel, pd.read_excel('data\\Irradiance_data.xlsx'))  # File with date-time and irradiance values
 load_profile = correct_load_profile(pd.read_excel('data\\Load_profile_8.xlsx'))  # File with date-time and consumption values
 belpex_data = correct_belpex_data(pd.read_excel('data\\Belpex_data.xlsx'))  # File with date-time and index values
 
-average_power(N, beta, A, eta, phi_panel, irradiance_data, load_profile)
-power_output_data = power_output(N, beta, A, eta, phi_panel)
-total_power_output = power_output_data['Power_Output_kWh'].sum()
+power_per_year(power_output, load_profile)
+average_power(power_output, load_profile)
+total_power_output = power_output['Power_Output_kWh'].sum()
 print('Total power output:', total_power_output, 'kWh')
 
 # Cost in case of day/night tariff
@@ -36,7 +36,7 @@ price_night = 0.1180  # Example price for night
 injection_price = 0.05  # Example price for injection
 
 # Calculate day and night electricity cost
-load_profile, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output_data)
+load_profile, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output)
 
 # Print somle useful information
 print('total electricity costs:', totalelectricity, 'eur')

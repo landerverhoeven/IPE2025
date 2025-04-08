@@ -1,7 +1,6 @@
-import pandas as pd
 import numpy as np
 
-def power_output(N, beta, A, eta, phi_panel, irradiance_data):
+def calculation_power_output(N, beta, A, eta, phi_panel, irradiance_data):
     # Constants for PV system
     rho = 0.2  # Ground reflectance
     T_ref = 25  # Reference temperature (°C)
@@ -12,9 +11,9 @@ def power_output(N, beta, A, eta, phi_panel, irradiance_data):
     # Extract necessary values
     local_time = irradiance_data["DateTime"].dt.hour + irradiance_data["DateTime"].dt.minute / 60
     day_of_year = irradiance_data["DateTime"].dt.dayofyear
-
-    # Vectorized solar position calculation
+    
     def calculate_solar_position(latitude, longitude, local_time, day_of_year):
+        # Calculate solar position parameters
         B = np.radians((360 / 365) * (day_of_year - 81))
         eot = 9.87 * np.sin(2 * B) - 7.53 * np.cos(B) - 1.5 * np.sin(B)
         standard_meridian = 15 * round(longitude / 15)
@@ -27,15 +26,25 @@ def power_output(N, beta, A, eta, phi_panel, irradiance_data):
         azimuth = np.where(azimuth >= 0, azimuth, azimuth + 360)
         return zenith_angle, np.radians(azimuth)
 
-    # Vectorized PV power calculation
-    def calculate_pv_power(GlobRad, DiffRad, T_cell, latitude, longitude, time, day_of_year):
-        theta_z_rad, gamma_s_rad = calculate_solar_position(latitude, longitude, time, day_of_year)
+    def calculate_pv_power(GlobRad, DiffRad, T_cell, latitude, longitude, local_time, day_of_year):
+        # Calculate solar position
+        theta_z_rad, gamma_s_rad = calculate_solar_position(latitude, longitude, local_time, day_of_year)
+        
+        # Calculate irradiance components
         GHI = np.maximum(0, GlobRad)
         DHI = np.maximum(0, DiffRad)
         DNI = np.where(np.cos(theta_z_rad) > 0, np.where(GHI > DHI, (GHI - DHI) / np.maximum(np.cos(theta_z_rad), 1e-10), 0), 0)
+        
+        # Calculate angle of incidence
         cos_theta_i = np.cos(theta_z_rad) * np.cos(beta) + np.sin(theta_z_rad) * np.sin(beta) * np.cos(gamma_s_rad - phi_panel)
+        
+        # Calculate plane of array irradiance
         G_POA = DNI * cos_theta_i + DHI * (1 + np.cos(beta)) / 2 + GHI * rho * (1 - np.cos(beta)) / 2
+        
+        # Adjust efficiency for temperature
         eta_temp = eta * (1 + temp_coeff * (T_cell - T_ref))
+        
+        # Calculate power output
         return np.maximum(0, G_POA * A * eta_temp * N) / 1000  # Convert to kWh
 
     # Compute PV power output
@@ -48,4 +57,5 @@ def power_output(N, beta, A, eta, phi_panel, irradiance_data):
         local_time.values,
         day_of_year.values
     )
+    
     return irradiance_data[["DateTime", "Power_Output_kWh"]]

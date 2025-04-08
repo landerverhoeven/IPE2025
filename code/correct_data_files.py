@@ -1,5 +1,7 @@
 import pandas as pd
-import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from calculations_power import calculation_power_output
 
 def correct_belpex_data(belpex_data):
     belpex_data = belpex_data.copy()  # Avoid SettingWithCopyWarning
@@ -42,16 +44,16 @@ def correct_belpex_data(belpex_data):
         new_row = last_row.copy()
         new_row['datetime'] = new_datetime
         additional_rows.append(new_row)
-    belpex_data = belpex_data.append(additional_rows, ignore_index=True)
+    belpex_data = pd.concat([belpex_data, pd.DataFrame(additional_rows)], ignore_index=True)
 
-    return belpex_data
+    return belpex_data[["datetime", "Euro"]]
 
 
 def correct_load_profile(load_profile):
     load_profile = load_profile.copy()  # Avoid SettingWithCopyWarning
 
-    # Ensure the 'Datum_Startuur' column is in datetime format
-    load_profile['Datum_Startuur'] = pd.to_datetime(load_profile['Datum_Startuur'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+    # Ensure 'Datum_Startuur' is in datetime format
+    load_profile['Datum_Startuur'] = pd.to_datetime(load_profile['Datum_Startuur'], errors='coerce')
 
     # Drop rows with invalid datetime values (NaT)
     load_profile = load_profile.dropna(subset=['Datum_Startuur']).copy()
@@ -63,16 +65,49 @@ def correct_load_profile(load_profile):
     load_profile['Volume_Afname_kWh'] = pd.to_numeric(load_profile['Volume_Afname_kWh'], errors='coerce')
     load_profile = load_profile.dropna(subset=['Volume_Afname_kWh']).copy()
 
-    # Resample to 15-minute intervals
-    load_profile = load_profile.set_index('Datum_Startuur').resample('15min').ffill().reset_index()
-
-    # Change the year of load_profile to 2000
+    # Change the year of 'Datum_Startuur' to 2000
     load_profile['Datum_Startuur'] = load_profile['Datum_Startuur'].apply(lambda x: x.replace(year=2000))
 
-    return load_profile
+    # Identify periods with missing data
+    missing_periods = load_profile[load_profile['Volume_Afname_kWh'].isna()]
+
+    # Group by consecutive missing periods
+    missing_periods['group'] = (missing_periods.index.to_series().diff() != pd.Timedelta('15min')).cumsum()
+
+    for group, period in missing_periods.groupby('group'):
+        start_date = period.index.min().normalize()
+        end_date = period.index.max().normalize()
+
+        # Calculate the number of days in the period
+        num_days = (end_date - start_date).days + 1
+
+        # Get the data for the days before and after the period
+        before_period = load_profile.loc[start_date - pd.Timedelta(days=num_days):start_date - pd.Timedelta(minutes=15)]
+        after_period = load_profile.loc[end_date + pd.Timedelta(minutes=15):end_date + pd.Timedelta(days=num_days)]
+
+        # Calculate the total load for the days before and after the period
+        before_load = before_period['Volume_Afname_kWh'].sum()
+        after_load = after_period['Volume_Afname_kWh'].sum()
+
+        # Fill the missing data with the data from the day with the lowest load
+        if before_load < after_load:
+            fill_data = before_period['Volume_Afname_kWh']
+        else:
+            fill_data = after_period['Volume_Afname_kWh']
+
+        # Repeat the fill data to match the length of the missing period
+        fill_data = fill_data.iloc[:len(period)].values
+
+        # Fill the missing period with the fill data
+        load_profile.loc[period.index, 'Volume_Afname_kWh'] = fill_data
+
+    # Reset index to keep 'Datum_Startuur' as a column
+    load_profile.reset_index(inplace=True)
+
+    return load_profile[["Datum_Startuur", "Volume_Afname_kWh"]]
 
 
-def correct_irradiance_data(irradiance_data):
+def correct_irradiance_data(N, beta, A, eta, phi_panel, irradiance_data):
     irradiance_data = irradiance_data.copy()  # Avoid SettingWithCopyWarning
 
     # Ensure the 'DateTime' column is in datetime format
@@ -90,38 +125,6 @@ def correct_irradiance_data(irradiance_data):
     # Change the year of load_profile to 2000
     irradiance_data['DateTime'] = irradiance_data['DateTime'].apply(lambda x: x.replace(year=2000))
 
-    return irradiance_data
+    power_output = calculation_power_output(N, beta, A, eta, phi_panel, irradiance_data)
 
-
-if __name__ == "__main__":
-    # Redirect standard output to a file
-    sys.stdout = open('output.txt', 'w')
-
-    # Read data into memory
-    belpex_data = pd.read_excel('data/Belpex_data.xlsx')  # File with date-time and index values
-    print(f"Length of belpex_data before correction: {len(belpex_data)}")
-    belpex_data = correct_belpex_data(belpex_data)
-    print(f"Length of belpex_data after correction: {len(belpex_data)}")
-    # Debugging: Print load_profile after resampling
-    print("belpex_data after resampling:")
-    print(belpex_data.head())
-    print(belpex_data.tail())
-
-    load_profile = pd.read_excel('data/Load_profile_8.xlsx')  # File with date-time and index values
-    print(f"Length of load_profile before correction: {len(load_profile)}")
-    load_profile = correct_load_profile(load_profile)
-    print(f"Length of load_profile after correction: {len(load_profile)}")
-    print("load_profile after resampling:")
-    print(load_profile.head())
-    print(load_profile.tail())
-
-    irradiance_data = pd.read_excel('data/Irradiance_data.xlsx')  # File with date-time and index values
-    print(f"Length of irradiance_data before correction: {len(irradiance_data)}")
-    irradiance_data = correct_irradiance_data(irradiance_data)
-    print(f"Length of irradiance_data after correction: {len(irradiance_data)}")
-    print("irradiance_data after resampling:")
-    print(irradiance_data.head())
-    print(irradiance_data.tail())
-
-    # Close the file
-    sys.stdout.close()
+    return power_output[["DateTime", "Power_Output_kWh"]]
