@@ -7,36 +7,6 @@ def calculate_total_dynamic_cost(belpex_data, load_profile):
     Calculate the total yearly electricity cost, including dynamic and fixed costs.
     Returns the total cost.
     """
-    # Ensure the 'Date' column is in string format
-    belpex_data['Date'] = belpex_data['Date'].astype(str)
-
-    # Append '00:00' to rows where only the date is present (no time)
-    belpex_data['Date'] = belpex_data['Date'].apply(lambda x: x if ':' in x else f"{x} 00:00")
-
-    # Convert the 'Date' column to datetime format
-    belpex_data['datetime'] = pd.to_datetime(belpex_data['Date'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
-
-    # Drop rows with invalid datetime values (NaT)
-    belpex_data = belpex_data.dropna(subset=['datetime']).copy()
-
-    # Convert the 'Euro' column to numeric and drop invalid rows
-    belpex_data['Euro'] = pd.to_numeric(belpex_data['Euro'], errors='coerce')
-    belpex_data = belpex_data.dropna(subset=['Euro']).copy()
-
-    # Drop duplicate datetime values by aggregating numeric columns
-    numeric_columns = belpex_data.select_dtypes(include='number').columns
-    belpex_data = belpex_data.groupby('datetime', as_index=False)[numeric_columns].mean()
-
-    # Resample to 15-minute intervals
-    belpex_data = belpex_data.set_index('datetime').resample('15min').ffill().reset_index()
-
-    # Change the year of belpex_data to 2000
-    belpex_data['datetime'] = belpex_data['datetime'].apply(lambda x: x.replace(year=2000))
-
-    # Debugging: Print belpex_data after resampling and year adjustment
-    print("belpex_data after resampling and year adjustment:")
-    print(belpex_data.head())
-    print(belpex_data.tail())
 
     # Standardize datetime formats for load_profile
     load_profile = load_profile.copy()  # Avoid SettingWithCopyWarning

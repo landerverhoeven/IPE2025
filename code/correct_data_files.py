@@ -1,9 +1,11 @@
 import pandas as pd
 
-def correct_belpex_profile(belpex_data):
-
+def correct_belpex(belpex_data):
     # Ensure the 'Date' column is in string format
     belpex_data['Date'] = belpex_data['Date'].astype(str)
+
+    # Append '00:00' to rows where only the date is present (no time)
+    belpex_data['Date'] = belpex_data['Date'].apply(lambda x: x if ':' in x else f"{x} 00:00")
 
     # Convert the 'Date' column to datetime format
     belpex_data['datetime'] = pd.to_datetime(belpex_data['Date'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
@@ -11,34 +13,48 @@ def correct_belpex_profile(belpex_data):
     # Drop rows with invalid datetime values (NaT)
     belpex_data = belpex_data.dropna(subset=['datetime']).copy()
 
-    # Add 29 February to belpex_data
-    # Filter data for 5 days before and 5 days after 28 February
-    february_range = belpex_data[
-        (belpex_data['datetime'] >= "2019-02-23") & (belpex_data['datetime'] <= "2019-03-04")
-    ].copy()
+    # Convert the 'Euro' column to numeric and drop invalid rows
+    belpex_data['Euro'] = pd.to_numeric(belpex_data['Euro'], errors='coerce')
+    belpex_data = belpex_data.dropna(subset=['Euro']).copy()
 
-    # Find the day with the lowest consumption
-    february_range['day'] = february_range['datetime'].dt.date
-    daily_consumption = february_range.groupby('day')['Euro'].sum()
-    lowest_consumption_day = daily_consumption.idxmin()
+    # Drop duplicate datetime values by aggregating numeric columns
+    numeric_columns = belpex_data.select_dtypes(include='number').columns
+    belpex_data = belpex_data.groupby('datetime', as_index=False)[numeric_columns].mean()
 
-    # Copy the 15-minute interval values of the lowest consumption day to 29 February
-    lowest_day_data = belpex_data[
-        belpex_data['datetime'].dt.date == lowest_consumption_day
-    ].copy()
+    # Resample to 15-minute intervals
+    belpex_data = belpex_data.set_index('datetime').resample('15min').ffill().reset_index()
 
-    # Adjust only timestamps from 28 February to 29 February
-    lowest_day_data['datetime'] = lowest_day_data['datetime'].apply(
-        lambda x: x.replace(day=29, month=2) if x.month == 2 and x.day == 28 else x
-    )
+    # Change the year of belpex_data to 2000
+    belpex_data['datetime'] = belpex_data['datetime'].apply(lambda x: x.replace(year=2000))
 
-    # Insert 29 February data into belpex_data
-    belpex_data = pd.concat([belpex_data, lowest_day_data]).sort_values(by='datetime').reset_index(drop=True)
+    # Debugging: Print belpex_data after resampling and year adjustment
+    print("belpex_data after resampling and year adjustment:")
+    print(belpex_data.head())
+    print(belpex_data.tail())
 
-    # Debugging: Print confirmation of 29 February addition
-    print("29 February added to belpex_data:")
-    print(belpex_data[belpex_data['datetime'].dt.date == pd.Timestamp("2019-02-29").date()])
     return belpex_data
+
+
+def correct_load_profile(load_profile):
+    # Ensure the 'Datum_Startuur' column is in datetime format
+    load_profile['Datum_Startuur'] = pd.to_datetime(load_profile['Datum_Startuur'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+
+    # Drop rows with invalid datetime values (NaT)
+    load_profile = load_profile.dropna(subset=['Datum_Startuur']).copy()
+
+    # Convert the 'Volume_Afname_kWh' column to numeric and drop invalid rows
+    load_profile['Volume_Afname_kWh'] = pd.to_numeric(load_profile['Volume_Afname_kWh'], errors='coerce')
+    load_profile = load_profile.dropna(subset=['Volume_Afname_kWh']).copy()
+
+    # Resample to 15-minute intervals
+    load_profile = load_profile.set_index('Datum_Startuur').resample('15min').ffill().reset_index()
+
+    # Debugging: Print load_profile after resampling
+    print("load_profile after resampling:")
+    print(load_profile.head())
+    print(load_profile.tail())
+
+    return load_profile
 
 if __name__ == "__main__":
     # Read data into memory
