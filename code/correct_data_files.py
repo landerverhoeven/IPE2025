@@ -70,41 +70,41 @@ def correct_load_profile(load_profile):
     load_profile['Datum_Startuur'] = load_profile['Datum_Startuur'].apply(lambda x: x.replace(year=2000))
 
     # Identify periods with missing data
-    missing_periods = load_profile[load_profile['Volume_Afname_kWh'].isna()]
+    missing_periods_load = load_profile[load_profile['Volume_Afname_kWh'].isna()]
 
     # Group by consecutive missing periods
-    missing_periods['group'] = (missing_periods.index.to_series().diff() != pd.Timedelta('15min')).cumsum()
+    missing_periods_load['group'] = (missing_periods_load.index.to_series().diff() != pd.Timedelta('15min')).cumsum()
 
-    for group, period in missing_periods.groupby('group'):
-        start_date = period.index.min().normalize()
-        end_date = period.index.max().normalize()
+    for group_load, period_load in missing_periods_load.groupby('group'):
+        start_date_load = period_load.index.min().normalize()
+        end_date_load = period_load.index.max().normalize()
 
         # Calculate the number of days in the period
-        num_days = (end_date - start_date).days + 1
+        num_days_load = (end_date_load - start_date_load).days + 1
 
         # Get the data for the days before and after the period
-        before_period = load_profile.loc[start_date - pd.Timedelta(days=num_days):start_date - pd.Timedelta(minutes=15)]
-        after_period = load_profile.loc[end_date + pd.Timedelta(minutes=15):end_date + pd.Timedelta(days=num_days)]
+        before_period_load = load_profile.loc[start_date_load - pd.Timedelta(days=num_days_load):start_date_load - pd.Timedelta(minutes=15)]
+        after_period_load = load_profile.loc[end_date_load + pd.Timedelta(minutes=15):end_date_load + pd.Timedelta(days=num_days_load)]
 
         # Calculate the total load for the days before and after the period
-        before_load = before_period['Volume_Afname_kWh'].sum()
-        after_load = after_period['Volume_Afname_kWh'].sum()
+        before_load_load = before_period_load['Volume_Afname_kWh'].sum()
+        after_load_load = after_period_load['Volume_Afname_kWh'].sum()
 
         # Fill the missing data with the data from the day with the lowest load
-        if before_load < after_load:
-            fill_data = before_period['Volume_Afname_kWh']
+        if before_load_load < after_load_load:
+            fill_data_load = before_period_load['Volume_Afname_kWh']
         else:
-            fill_data = after_period['Volume_Afname_kWh']
+            fill_data_load = after_period_load['Volume_Afname_kWh']
 
         # Repeat the fill data to match the length of the missing period
-        fill_data = fill_data.iloc[:len(period)].values
+        fill_data_load = fill_data_load.iloc[:len(period_load)].values
 
         # Fill the missing period with the fill data
-        load_profile.loc[period.index, 'Volume_Afname_kWh'] = fill_data
+        load_profile.loc[period_load.index, 'Volume_Afname_kWh'] = fill_data_load
 
     # Reset index to keep 'Datum_Startuur' as a column
     load_profile.reset_index(inplace=True)
-
+    print(len(load_profile))
     return load_profile[["Datum_Startuur", "Volume_Afname_kWh"]]
 
 
@@ -125,11 +125,8 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
     for col in numeric_columns:
         irradiance_data[col] = pd.to_numeric(irradiance_data[col], errors='coerce')
 
-    # Resample to 15-minute intervals
-    # irradiance_data = irradiance_data.set_index('DateTime').resample('15min').ffill().reset_index()
-
-    # Change the year of load_profile to 2000
-    # irradiance_data['DateTime'] = irradiance_data['DateTime'].apply(lambda x: x.replace(year=2000))
+    # Initialize power_output as a DataFrame
+    power_output = pd.DataFrame()
 
     power_output = calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data)
 
@@ -139,4 +136,55 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
     # Change the year of load_profile to 2000
     power_output['DateTime'] = power_output['DateTime'].apply(lambda x: x.replace(year=2000))
 
+    # Identify zero power output periods
+    power_output['is_zero'] = power_output['Power_Output_kWh'] == 0
+
+    # Group consecutive zero periods
+    power_output['group'] = (~power_output['is_zero']).cumsum()
+
+    # Identify groups where the zero period lasts more than 1 day (96 intervals for 15-minute data)
+    zero_groups = power_output[power_output['is_zero']].groupby('group').size()
+    long_zero_groups = zero_groups[zero_groups > 96].index
+
+    # Handle long zero periods
+    for group in long_zero_groups:
+        period_power = power_output[power_output['group'] == group]
+
+        # Get the start and end indices of the missing group
+        start_idx = period_power.index.min()
+        end_idx = period_power.index.max()
+
+        # Calculate the length of the missing group
+        group_length = len(period_power)
+
+        # Create fake groups before and after the missing group
+        before_period_power = power_output.loc[start_idx - group_length:start_idx - 1]
+        after_period_power = power_output.loc[end_idx + 1:end_idx + group_length]
+
+        # Skip if fake groups are incomplete
+        if len(before_period_power) < group_length or len(after_period_power) < group_length:
+            continue
+
+        # Calculate total power output for fake groups
+        before_total = before_period_power['Power_Output_kWh'].sum()
+        after_total = after_period_power['Power_Output_kWh'].sum()
+
+        # Choose the fake group with the lowest total power output
+        if before_total < after_total:
+            fill_data = before_period_power['Power_Output_kWh'].values
+        else:
+            fill_data = after_period_power['Power_Output_kWh'].values
+
+        # Replace the missing group with the chosen fake group
+        power_output.loc[period_power.index, 'Power_Output_kWh'] = fill_data
+
+    # Preserve single-day zero periods (do not change their values)
+    single_day_groups = zero_groups[zero_groups <= 96].index
+    for group in single_day_groups:
+        power_output.loc[power_output['group'] == group, 'Power_Output_kWh'] = 0
+
+    # Drop helper columns
+    power_output = power_output.drop(columns=['is_zero', 'group'])
+
+    print(len(power_output))
     return power_output[["DateTime", "Power_Output_kWh"]]

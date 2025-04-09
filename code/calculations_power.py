@@ -12,22 +12,24 @@ def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, ir
     # Calculate DC capacity (in W)
     dc_capacity = N_module * WP_panel  
 
-    # Ensure DateTime is a timezone-aware datetime (UTC)
-    irradiance_data_datetime_localized = irradiance_data["DateTime"].dt.tz_localize("Europe/Brussels", ambiguous="NaT").dt.tz_convert("UTC")
+    # Ensure DateTime is a timezone-aware datetime in Europe/Brussels timezone
+    irradiance_data["DateTime"] = pd.to_datetime(irradiance_data["DateTime"])  # Ensure DateTime is in datetime format
+    irradiance_data["DateTime"] = irradiance_data["DateTime"].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
+    
+    # Convert DateTime to UTC for solar position calculations
+    irradiance_data["DateTime_UTC"] = irradiance_data["DateTime"].dt.tz_convert("UTC")
 
-    # Calculate solar position using the DateTime column;
-    # note that this returns a DataFrame with a DatetimeIndex that might differ from irradiance_data's index.
+    # Calculate solar position using the DateTime_UTC column
     solar_position = pvlib.solarposition.get_solarposition(
-        time=irradiance_data_datetime_localized, 
+        time=irradiance_data["DateTime_UTC"], 
         latitude=latitude, 
         longitude=longitude
     )
 
     # Convert apparent_zenith to numeric and fill NaN values with 90.
-    # Then force an explicit type conversion to float.
     solar_position["apparent_zenith"] = pd.to_numeric(solar_position["apparent_zenith"], errors="coerce").fillna(90).astype(float)
     
-    # IMPORTANT: Align solar_position with irradiance_data by copying the index.
+    # Align solar_position with irradiance_data by copying the index
     solar_position.index = irradiance_data.index
 
     # Calculate DNI (Direct Normal Irradiance)
@@ -49,16 +51,16 @@ def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, ir
         albedo=albedo,
     )
 
-    # Determine the ambient temperature column depending on the tilt angle.
+    # Determine the ambient temperature column depending on the tilt angle
     T_cell = irradiance_data["T_RV_degC"] if tilt_module > np.radians(10) else irradiance_data["T_CommRoof_degC"]
 
-    # Use the open_rack_glass_glass parameters from pvlib.
+    # Use the open_rack_glass_glass parameters from pvlib
     temperature_parameters = pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS['sapm']['open_rack_glass_glass']
     a = temperature_parameters['a']
     b = temperature_parameters['b']
     deltaT = temperature_parameters['deltaT']
 
-    # Calculate cell temperature.
+    # Calculate cell temperature
     irradiance_data["T_cell"] = pvlib.temperature.sapm_cell(
         poa_global=poa["poa_global"],
         temp_air=T_cell,
@@ -68,7 +70,7 @@ def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, ir
         deltaT=deltaT
     )
 
-    # Calculate the DC power output using the PVWatts model and convert from W to kW.
+    # Calculate the DC power output using the PVWatts model and convert from W to kW
     irradiance_data["Power_Output_kW"] = pvlib.pvsystem.pvwatts_dc(
         g_poa_effective=poa["poa_global"],
         temp_cell=irradiance_data["T_cell"],

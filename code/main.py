@@ -1,29 +1,39 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
 from average_power import average_power
 from day_night_electricity_cost import day_night_electricity_cost
 from day_night_electricity_cost import is_daytime
 from correct_data_files import correct_belpex_data, correct_load_profile, correct_irradiance_data
 from power_per_year import power_per_year
-from beta_calculations_power import calculation_power_output_1
-from calculations_power import calculation_power_output
 
 # Constants for PV system
-tilt_module = np.radians(40)  # Panel tilt angle (radians)
-WP_panel = 300  # Panel power (W)
-N_module = 10  # Number of panels
-azimuth_module = np.radians(120)  # Panel azimuth angle (radians)
+tilt_module = np.radians(30)  # Panel tilt angle (radians)
+WP_panel = 250  # Panel power (W)
+N_module = 4  # Number of panels
+azimuth_module = np.radians(90)  # Panel azimuth angle (radians)
 
 # Costs
 scissor_lift_cost = 170  # incl. vat
 installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
 
+# File paths (using os.path.join for cross-platform compatibility)
+data_folder = "data"
+belpex_path = os.path.join(data_folder, "Belpex_data.xlsx")
+load_profile_path = os.path.join(data_folder, "Load_profile_8.xlsx")
+irradiance_path = os.path.join(data_folder, "Irradiance_data.xlsx")
+
 # Read and correct all the data files
-power_output = correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, pd.read_excel('data\\Irradiance_data.xlsx'))  # File with date-time and irradiance values
-load_profile = correct_load_profile(pd.read_excel('data\\Load_profile_8.xlsx'))  # File with date-time and consumption values
-belpex_data = correct_belpex_data(pd.read_excel('data\\Belpex_data.xlsx'))  # File with date-time and index values
+power_output = correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, pd.read_excel(irradiance_path))  # File with date-time and irradiance values
+load_profile = correct_load_profile(pd.read_excel(load_profile_path))  # File with date-time and consumption values
+belpex_data = correct_belpex_data(pd.read_excel(belpex_path))  # File with date-time and index values
+
+# Output
+print("Belpex Data:", belpex_data.head())
+print("Load Profile:", load_profile.head())
+print("Power Output:", power_output.head())
 
 power_per_year(power_output, load_profile)
 average_power(power_output, load_profile)
