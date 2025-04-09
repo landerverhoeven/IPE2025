@@ -120,6 +120,11 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
     # Drop rows where the date is February 29
     irradiance_data = irradiance_data[~((irradiance_data['DateTime'].dt.month == 2) & (irradiance_data['DateTime'].dt.day == 29))]
 
+    # Ensure numeric columns are properly formatted
+    numeric_columns = ['GlobRad', 'DiffRad', 'T_RV_degC', 'T_CommRoof_degC']  # Replace with actual column names
+    for col in numeric_columns:
+        irradiance_data[col] = pd.to_numeric(irradiance_data[col], errors='coerce')
+
     # Resample to 15-minute intervals
     # irradiance_data = irradiance_data.set_index('DateTime').resample('15min').ffill().reset_index()
 

@@ -3,7 +3,6 @@ import pvlib
 import numpy as np
 
 def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data):
-    
     # Constants for PV system
     albedo = 0.2  # Ground reflectance
     temp_coeff = -0.004  # Temperature coefficient of efficiency (per °C)
@@ -13,43 +12,25 @@ def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, ir
     # Calculate DC capacity
     dc_capacity = N_module * WP_panel  # Total DC capacity in W
 
-
-    # Handle timezone and daylight saving time transitions
-    irradiance_data["DateTime"] = handle_dst_transitions(irradiance_data["DateTime"])
+    # Localize DateTime to Europe/Brussels and convert to UTC
+    irradiance_data["DateTime"] = pd.to_datetime(irradiance_data["DateTime"])
+    irradiance_data["DateTime"] = irradiance_data["DateTime"].dt.tz_localize(
+        "Europe/Brussels", ambiguous="NaT"
+    ).dt.tz_convert("UTC")
 
     # Calculate solar position
     solar_position = pvlib.solarposition.get_solarposition(
         time=irradiance_data["DateTime"], latitude=latitude, longitude=longitude
     )
 
-    def handle_dst_transitions(datetime_series):
+    # Extract day of the year (DOY) from DateTime
+    irradiance_data["DOY"] = irradiance_data["DateTime"].dt.dayofyear
 
-        # Localize to Europe/Brussels and handle ambiguous times
-        datetime_series = datetime_series.dt.tz_localize("Europe/Brussels", ambiguous="NaT")
-
-        # Identify missing or ambiguous times
-        time_diffs = datetime_series.diff()
-
-        # Handle added hours (time difference > 1 hour)
-        added_hours = time_diffs[time_diffs > pd.Timedelta(hours=1)].index
-        for idx in added_hours:
-            # Duplicate the previous timestamp
-            datetime_series[idx] = datetime_series[idx - 1]
-
-        # Handle skipped hours (time difference < 1 hour)
-        skipped_hours = time_diffs[time_diffs < pd.Timedelta(hours=1)].index
-        for idx in skipped_hours:
-            # Interpolate the missing timestamp
-            datetime_series[idx] = datetime_series[idx - 1] + pd.Timedelta(hours=1)
-
-        # Convert to UTC
-        datetime_series = datetime_series.dt.tz_convert("UTC")
-
-        return datetime_series
-
-    # Calculate DNI from GHI and DHI
+    # Calculate DNI using dirint
     irradiance_data["DNI"] = pvlib.irradiance.dni(
-        ghi=irradiance_data["GlobRad"], dhi=irradiance_data["DiffRad"], solar_zenith=solar_position["zenith"]
+        ghi=irradiance_data["GlobRad"],
+        dhi=irradiance_data["DiffRad"],
+        zenith=solar_position.apparent_zenith
     )
 
     # Calculate POA irradiance
@@ -59,17 +40,13 @@ def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, ir
         dni=irradiance_data["DNI"],
         ghi=irradiance_data["GlobRad"],
         dhi=irradiance_data["DiffRad"],
-        solar_zenith=solar_position["zenith"],
-        solar_azimuth=solar_position["azimuth"],
+        solar_zenith=solar_position.apparent_zenith,
+        solar_azimuth=solar_position.azimuth,
         albedo=albedo,
     )
 
     # Determine cell temperature based on tilt angle
-    if tilt_module > np.radians(10):
-        # Gable roof
-        T_cell = irradiance_data["T_RV_degC"]
-    else:  # Flat roof
-        T_cell = irradiance_data["T_CommRoof_degC"]
+    T_cell = irradiance_data["T_RV_degC"] if tilt_module > np.radians(10) else irradiance_data["T_CommRoof_degC"]
 
     # Calculate cell temperature
     irradiance_data["T_cell"] = pvlib.temperature.sapm_cell(
