@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from calculations_power import calculation_power_output
+from beta_calculations_power import calculation_power_output_1
 
 def correct_belpex_data(belpex_data):
     belpex_data = belpex_data.copy()  # Avoid SettingWithCopyWarning
@@ -107,7 +108,7 @@ def correct_load_profile(load_profile):
     return load_profile[["Datum_Startuur", "Volume_Afname_kWh"]]
 
 
-def correct_irradiance_data(N, beta, A, eta, phi_panel, irradiance_data):
+def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data):
     irradiance_data = irradiance_data.copy()  # Avoid SettingWithCopyWarning
 
     # Ensure the 'DateTime' column is in datetime format
@@ -120,11 +121,17 @@ def correct_irradiance_data(N, beta, A, eta, phi_panel, irradiance_data):
     irradiance_data = irradiance_data[~((irradiance_data['DateTime'].dt.month == 2) & (irradiance_data['DateTime'].dt.day == 29))]
 
     # Resample to 15-minute intervals
-    irradiance_data = irradiance_data.set_index('DateTime').resample('15min').ffill().reset_index()
+    # irradiance_data = irradiance_data.set_index('DateTime').resample('15min').ffill().reset_index()
 
     # Change the year of load_profile to 2000
-    irradiance_data['DateTime'] = irradiance_data['DateTime'].apply(lambda x: x.replace(year=2000))
+    # irradiance_data['DateTime'] = irradiance_data['DateTime'].apply(lambda x: x.replace(year=2000))
 
-    power_output = calculation_power_output(N, beta, A, eta, phi_panel, irradiance_data)
+    power_output = calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data)
+
+    # Resample to 15-minute intervals
+    power_output = power_output.set_index('DateTime').resample('15min').sum()
+
+    # Change the year of load_profile to 2000
+    power_output['DateTime'] = power_output['DateTime'].apply(lambda x: x.replace(year=2000))
 
     return power_output[["DateTime", "Power_Output_kWh"]]

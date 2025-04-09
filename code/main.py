@@ -6,13 +6,14 @@ from day_night_electricity_cost import day_night_electricity_cost
 from day_night_electricity_cost import is_daytime
 from correct_data_files import correct_belpex_data, correct_load_profile, correct_irradiance_data
 from power_per_year import power_per_year
+from beta_calculations_power import calculation_power_output_1
+from calculations_power import calculation_power_output
 
 # Constants for PV system
-beta = np.radians(20)  # Panel tilt angle (radians)
-A = 2  # Panel area (m^2)
-eta = 0.18  # Panel efficiency (18%)
-N = 2  # Number of panels
-phi_panel = np.radians(180)  # Panel azimuth angle (radians)
+tilt_module = np.radians(40)  # Panel tilt angle (radians)
+WP_panel = 300  # Panel power (W)
+N_module = 10  # Number of panels
+azimuth_module = np.radians(120)  # Panel azimuth angle (radians)
 
 # Costs
 scissor_lift_cost = 170  # incl. vat
@@ -20,7 +21,7 @@ installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
 
 # Read and correct all the data files
-power_output = correct_irradiance_data(N, beta, A, eta, phi_panel, pd.read_excel('data\\Irradiance_data.xlsx'))  # File with date-time and irradiance values
+power_output = correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, pd.read_excel('data\\Irradiance_data.xlsx'))  # File with date-time and irradiance values
 load_profile = correct_load_profile(pd.read_excel('data\\Load_profile_8.xlsx'))  # File with date-time and consumption values
 belpex_data = correct_belpex_data(pd.read_excel('data\\Belpex_data.xlsx'))  # File with date-time and index values
 
