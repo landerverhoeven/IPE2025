@@ -67,6 +67,12 @@ def day_night_electricity_cost(price_day, price_night, injection_price, load_con
     # Save the results to a new file
     load_consumption.to_excel('results\\electricity_cost_results_day_night.xlsx', index=False)
     
+    # Print somle useful information
+    print('total electricity costs:', total_electricity_cost, 'eur')
+    print('network costs:', total_network_costs, 'eur')
+    print('taxes:', total_taxes, 'eur')
+    print('total costs:', total_cost_fullyear, 'eur')
+
     return load_consumption, total_electricity_cost, total_network_costs, total_taxes, total_cost_fullyear
 
 def is_daytime(timestamp):

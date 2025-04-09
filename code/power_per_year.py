@@ -24,6 +24,9 @@ def power_per_year(power_output, load_profile):
     print(f"Average daily power output: {average_daily_power_output.mean().iloc[0]:.2f} kWh")
     print(f"Average daily load: {average_daily_load.mean().iloc[0]:.2f} kWh")
 
+    total_power_output = power_output['Power_Output_kWh'].sum()
+    print('Total power output:', total_power_output, 'kWh')
+
     # Plot the load and power output values using matplotlib
     plt.figure(figsize=(14, 8))
     plt.plot(daily_load.index, daily_load.values, label='Load (Volume_Afname_kWh)', marker='o', linestyle='-')

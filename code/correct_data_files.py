@@ -104,7 +104,7 @@ def correct_load_profile(load_profile):
 
     # Reset index to keep 'Datum_Startuur' as a column
     load_profile.reset_index(inplace=True)
-    print(len(load_profile))
+
     return load_profile[["Datum_Startuur", "Volume_Afname_kWh"]]
 
 
@@ -186,5 +186,24 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
     # Drop helper columns
     power_output = power_output.drop(columns=['is_zero', 'group'])
 
-    print(len(power_output))
     return power_output[["DateTime", "Power_Output_kWh"]]
+
+def all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, WP_panel, N_module, tilt_module, azimuth_module):
+    power_output_old = power_output_old.copy()  # Avoid SettingWithCopyWarning
+    load_profile_old = load_profile_old.copy()  # Avoid SettingWithCopyWarning
+    belpex_data_old = belpex_data_old.copy()  # Avoid SettingWithCopyWarning
+
+    power_output = correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, power_output_old)  # File with date-time and irradiance values
+    load_profile = correct_load_profile(load_profile_old)  # File with date-time and consumption values
+    belpex_data = correct_belpex_data(belpex_data_old)  # File with date-time and index values
+
+    # Make all the timestamps timezone-aware
+    belpex_data["datetime"] = belpex_data["datetime"].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
+
+    data = pd.DataFrame()
+    data['datetime'] = power_output['DateTime']
+    data['Power_Output_kWh'] = power_output['Power_Output_kWh']
+    data['Volume_Afname_kWh'] = load_profile['Volume_Afname_kWh']
+    data['Euro'] = belpex_data['Euro']
+
+    return data, power_output, load_profile, belpex_data

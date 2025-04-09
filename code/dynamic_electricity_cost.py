@@ -2,23 +2,11 @@ import pandas as pd
 
 # SOURCE: ENGIE Electrabel - Dynamic electricity prices
 
-def calculate_total_dynamic_cost(belpex_data, load_profile):
+def calculate_total_dynamic_cost(power_output, load_profile, belpex_data):
     """
     Calculate the total yearly electricity cost, including dynamic and fixed costs.
     Returns the total cost.
     """
-
-    # Ensure both datasets cover the same datetime range
-    start_date = max(belpex_data['datetime'].min(), load_profile['Datum_Startuur'].min())
-    end_date = min(belpex_data['datetime'].max(), load_profile['Datum_Startuur'].max())
-
-    belpex_data = belpex_data[(belpex_data['datetime'] >= start_date) & (belpex_data['datetime'] <= end_date)].copy()
-    load_profile = load_profile[(load_profile['Datum_Startuur'] >= start_date) & (load_profile['Datum_Startuur'] <= end_date)].copy()
-
-    # Validate that both datasets are aligned
-    if not belpex_data['datetime'].equals(load_profile['Datum_Startuur']):
-        raise ValueError("The datetime columns in belpex_data and load_profile are not aligned.")
-
     # Calculate electricity cost for each 15-minute interval
     vat_tarrif = 1.06  # VAT tariff
     load_profile['electricity_cost'] = (
@@ -55,20 +43,11 @@ def calculate_total_dynamic_cost(belpex_data, load_profile):
     # Total yearly cost
     total_cost = dynamic_costs + fixed_fee + data_management_fee + total_capacity_tarrif
 
-    return total_cost
-
-# Main script
-if __name__ == "__main__":
-    # Read data into memory
-    belpex_data = pd.read_excel('data/Belpex_data.xlsx')  # File with date-time and index values
-    load_profile = pd.read_excel('data/Load_profile_8.xlsx')  # File with date-time and consumption values
-
-    # Calculate total cost using in-memory data
-    total_cost = calculate_total_dynamic_cost(belpex_data, load_profile)
-
     # Print the total cost
     print(f"Total Electricity Cost (Yearly): €{total_cost:.2f}")
     print(f"belpex_data rows after filtering: {len(belpex_data)}")
     print(f"load_profile rows after filtering: {len(load_profile)}")
     print("belpex_data datetime range:", belpex_data['datetime'].min(), "to", belpex_data['datetime'].max())
     print("load_profile date_time range:", load_profile['Datum_Startuur'].min(), "to", load_profile['Datum_Startuur'].max())
+
+    return total_cost
