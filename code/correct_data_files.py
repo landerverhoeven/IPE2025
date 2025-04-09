@@ -134,7 +134,7 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
     power_output = calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data)
 
     # Resample to 15-minute intervals
-    power_output = power_output.set_index('DateTime').resample('15min').sum()
+    power_output = power_output.set_index('DateTime').resample('15min').sum().reset_index()
 
     # Change the year of load_profile to 2000
     power_output['DateTime'] = power_output['DateTime'].apply(lambda x: x.replace(year=2000))
