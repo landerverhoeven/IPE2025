@@ -11,9 +11,9 @@ from power_per_year import power_per_year
 
 # Constants for PV system
 tilt_module = np.radians(30)  # Panel tilt angle (radians)
-WP_panel = 250  # Panel power (W)
-N_module = 4  # Number of panels
 azimuth_module = np.radians(90)  # Panel azimuth angle (radians)
+WP_panel = 350  # Panel power (W)
+N_module = 20  # Number of panels
 
 # Costs
 scissor_lift_cost = 170  # incl. vat
@@ -22,7 +22,7 @@ uniet_solar_panel_cost = 110  # incl. vat
 
 # File paths (using os.path.join for cross-platform compatibility)
 data_folder = "data"
-belpex_path = os.path.join(data_folder, "Belpex_data.xlsx")
+belpex_path = os.path.join(data_folder, "Belpex_2024.xlsx")
 load_profile_path = os.path.join(data_folder, "Load_profile_8.xlsx")
 irradiance_path = os.path.join(data_folder, "Irradiance_data.xlsx")
 
@@ -33,7 +33,7 @@ power_per_year(power_output, load_profile)
 average_power(power_output, load_profile)
 
 # Calculate total cost using in-memory data
-total_cost = calculate_total_dynamic_cost(power_output, load_profile, belpex_data)
+total_cost = calculate_total_dynamic_cost(data)
 
 # Cost in case of day/night tariff
 # Prices for day and night source: engie (vtest)
@@ -42,7 +42,7 @@ price_night = 0.1180  # Example price for night
 injection_price = 0.05  # Example price for injection
 
 # Calculate day and night electricity cost
-#load_profile, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output)
+load_profile, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output)
 
 # Load day and night
 #load_day = load_profile[load_profile['Datum_Startuur'].apply(is_daytime)]

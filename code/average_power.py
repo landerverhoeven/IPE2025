@@ -37,8 +37,3 @@ def average_power(power_output, load_profile):
     plt.xticks(np.arange(0, 1441, 60), labels=[f'{h}:00' for h in range(25)], rotation=45)
     plt.tight_layout()
     plt.show()
-
-# Example usage
-# power_output_df = pd.read_csv('path_to_power_output.csv')
-# load_profile_df = pd.read_csv('path_to_load_profile.csv')
-# calculate_and_plot_average(power_output_df, load_profile_df)

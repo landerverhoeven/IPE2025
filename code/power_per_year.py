@@ -21,8 +21,8 @@ def power_per_year(power_output, load_profile):
     average_daily_power_output = daily_power_output.resample('D').mean()
     average_daily_load = daily_load.resample('D').mean()
 
-    print(f"Average daily power output: {average_daily_power_output.mean().iloc[0]:.2f} kWh")
     print(f"Average daily load: {average_daily_load.mean().iloc[0]:.2f} kWh")
+    print(f"Average daily power output: {average_daily_power_output.mean().iloc[0]:.2f} kWh")
 
     total_power_output = power_output['Power_Output_kWh'].sum()
     print('Total power output:', total_power_output, 'kWh')
