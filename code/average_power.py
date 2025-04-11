@@ -42,36 +42,36 @@ def average_power(power_output, load_profile):
     plt.tight_layout()
     plt.show()
 
-    # Print the column names of load_profile to verify the correct column name
-    print("Load Profile Columns:", load_profile.columns)
-
-    # Print the column names of power_output to verify the correct column name
-    print("Power Output Columns:", power_output.columns)
-
-    # Filter the power_output and load_profile data for the first day of January
-    first_day_power_output = power_output[
-        (power_output.index >= pd.Timestamp('2024-01-01')) &  # Use the index if datetime is the index
-        (power_output.index < pd.Timestamp('2024-01-02'))
-    ]
-
-    first_day_load_profile = load_profile[
-        (load_profile.index >= pd.Timestamp('2024-01-01')) &  # Use the index if datetime is the index
-        (load_profile.index < pd.Timestamp('2024-01-02'))
-    ]
-
-    # Plot both power output and load profile on the same graph
-    plt.figure(figsize=(12, 6))
-    plt.plot(first_day_power_output.index, first_day_power_output['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
-    plt.plot(first_day_load_profile.index, first_day_load_profile['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
-    plt.xlabel('Datetime')
-    plt.ylabel('Energy (kWh)')
-    plt.title('Power Output and Load Profile on January 1st, 2024')
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-
-    # Save the plot as an image
-    plt.savefig('results/power_output_and_load_profile_january_1st.png')
-    plt.show()
+    ## Print the column names of load_profile to verify the correct column name
+    #print("Load Profile Columns:", load_profile.columns)
+#
+    ## Print the column names of power_output to verify the correct column name
+    #print("Power Output Columns:", power_output.columns)
+#
+    ## Filter the power_output and load_profile data for the first day of January
+    #first_day_power_output = power_output[
+    #    (power_output.index >= pd.Timestamp('2024-01-01')) &  # Use the index if datetime is the index
+    #    (power_output.index < pd.Timestamp('2024-01-02'))
+    #]
+#
+    #first_day_load_profile = load_profile[
+    #    (load_profile.index >= pd.Timestamp('2024-01-01')) &  # Use the index if datetime is the index
+    #    (load_profile.index < pd.Timestamp('2024-01-02'))
+    #]
+#
+    ## Plot both power output and load profile on the same graph
+    #plt.figure(figsize=(12, 6))
+    #plt.plot(first_day_power_output.index, first_day_power_output['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
+    #plt.plot(first_day_load_profile.index, first_day_load_profile['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
+    #plt.xlabel('Datetime')
+    #plt.ylabel('Energy (kWh)')
+    #plt.title('Power Output and Load Profile on January 1st, 2024')
+    #plt.grid(True)
+    #plt.legend()
+    #plt.tight_layout()
+#
+    ## Save the plot as an image
+    #plt.savefig('results/power_output_and_load_profile_january_1st.png')
+    #plt.show()
 
     return average_power_output, average_load
