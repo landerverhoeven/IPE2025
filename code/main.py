@@ -8,6 +8,10 @@ from day_night_electricity_cost import day_night_electricity_cost
 from day_night_electricity_cost import is_daytime
 from correct_data_files import all_correct_data_files
 from power_per_year import power_per_year
+from battery1 import calculate_power_difference
+from battery1 import calculate_average_daily_power_difference
+from average_power import average_power
+
 
 # Constants for PV system
 tilt_module = np.radians(30)  # Panel tilt angle (radians)
@@ -60,3 +64,29 @@ plt.title('Total Cost per 15min Over Time')
 plt.xlim(pd.Timestamp('2022-01-01'), pd.Timestamp('2022-01-02'))
 plt.show()
 '''
+
+# Calculate power difference for all timestamps
+power_difference = calculate_power_difference(power_output, load_profile)
+
+power_difference.to_excel('results/power_difference.xlsx', index=False)  # Save the power difference to an Excel file
+
+# Calculate the average daily power difference
+average_daily_difference = calculate_average_daily_power_difference(power_difference)
+
+# Save the results to a new Excel file
+average_daily_difference.to_excel('results/average_daily_power_difference.xlsx', index=False)
+
+# Plot the results
+plt.figure(figsize=(10, 6))
+plt.plot(average_daily_difference["TimeOfDay"], average_daily_difference["Power_Difference_kWh"], label="Average Power Difference (kWh)", color="green")
+plt.xlabel("Time of Day")
+plt.ylabel("Average Power Difference (kWh)")
+plt.title("Average Daily Power Difference Over a Year")
+plt.xticks(rotation=45)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig('results/average_daily_power_difference_plot.png')  # Save the plot as an image
+plt.show()
+
+print('Total surplus:', power_difference["Power_Difference_kWh"].sum(), 'kWh')

@@ -37,3 +37,5 @@ def average_power(power_output, load_profile):
     plt.xticks(np.arange(0, 1441, 60), labels=[f'{h}:00' for h in range(25)], rotation=45)
     plt.tight_layout()
     plt.show()
+
+    return average_power_output, average_load

@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt  # Import matplotlib for plotting
+import matplotlib.pyplot as plt
 from calculations_power import calculation_power_output
 from main import load_profile, irradiance_path, WP_panel, N_module, tilt_module, azimuth_module
 
@@ -9,7 +9,7 @@ def power_difference_if_generated_is_larger():
     irradiance_data = pd.read_excel(irradiance_path)
 
     # Get the power output and load data
-    irradiance_data = calculation_power_output(
+    power_output_data = calculation_power_output(
         WP_panel=WP_panel,
         N_module=N_module,
         tilt_module=np.degrees(tilt_module),  # Convert tilt angle to degrees
@@ -22,8 +22,16 @@ def power_difference_if_generated_is_larger():
     irradiance_data["DateTime"] = irradiance_data["DateTime"].dt.tz_localize(None)
     load_data["Datum_Startuur"] = pd.to_datetime(load_data["Datum_Startuur"])  # Ensure it's in datetime format
 
-    # Merge the data on the datetime columns
-    merged_data = pd.merge(irradiance_data, load_data, left_on="DateTime", right_on="Datum_Startuur")
+    # Debug: Check year ranges
+    print("Irradiance Data Year Range:", irradiance_data["DateTime"].dt.year.unique())
+    print("Load Data Year Range:", load_data["Datum_Startuur"].dt.year.unique())
+
+    # Extract day and time components
+    irradiance_data["DayTime"] = irradiance_data["DateTime"].dt.strftime("%m-%d %H:%M")
+    load_data["DayTime"] = load_data["Datum_Startuur"].dt.strftime("%m-%d %H:%M")
+
+    # Merge the data on the DayTime column
+    merged_data = pd.merge(irradiance_data, load_data, on="DayTime")
 
     # Calculate the difference where generated power is larger than consumed power
     merged_data["Power_Difference_kWh"] = np.where(
