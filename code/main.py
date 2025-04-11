@@ -190,6 +190,10 @@ first_day = power_difference[
     (power_difference['datetime'] < pd.Timestamp('2024-01-02'))
 ]
 
+# Print the values for January 1st
+print("Power Difference Values on January 1st, 2024:")
+print(first_day)
+
 # Plot the power difference for the first day of January
 plt.figure(figsize=(12, 6))
 plt.plot(first_day['datetime'], first_day['power_difference_kwh'], label='Power Difference (kWh)', color='orange')
@@ -202,4 +206,30 @@ plt.tight_layout()
 
 # Save the plot as an image
 plt.savefig('results/power_difference_january_1st.png')
+plt.show()
+
+# Filter the power_output and load_profile data for the first day of January
+first_day_power_output = power_output[
+    (power_output['datetime'] >= pd.Timestamp('2024-01-01')) &
+    (power_output['datetime'] < pd.Timestamp('2024-01-02'))
+]
+
+first_day_load_profile = load_profile[
+    (load_profile['datum_startuur'] >= pd.Timestamp('2024-01-01')) &
+    (load_profile['datum_startuur'] < pd.Timestamp('2024-01-02'))
+]
+
+# Plot both power output and load profile on the same graph
+plt.figure(figsize=(12, 6))
+plt.plot(first_day_power_output['datetime'], first_day_power_output['power_output_kwh'], label='Power Output (kWh)', color='blue')
+plt.plot(first_day_load_profile['datum_startuur'], first_day_load_profile['volume_afname_kwh'], label='Load Profile (kWh)', color='red')
+plt.xlabel('Datetime')
+plt.ylabel('Energy (kWh)')
+plt.title('Power Output and Load Profile on January 1st, 2024')
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+
+# Save the plot as an image
+plt.savefig('results/power_output_and_load_profile_january_1st.png')
 plt.show()
