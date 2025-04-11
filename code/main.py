@@ -47,6 +47,7 @@ average_power(power_output, load_profile)
 if 'DateTime' not in power_output.columns:
     power_output = power_output.reset_index()  # Reset index to make 'DateTime' a column
 
+
 # Debug: Print the power_output DataFrame to verify its structure after reset
 #print("Power Output Columns (after reset):", power_output.columns)
 #print(power_output.head())
@@ -82,7 +83,24 @@ plt.show()
 
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(power_output, load_profile)
+power_difference['power_difference_kwh'] = power_difference['power_difference_kwh'].clip(lower=0)
 
+
+## Plot power_output, power_difference, and load_profile on the same graph
+#plt.figure(figsize=(12, 6))
+#plt.plot(power_output['datetime'], power_output['power_output_kwh'], label='Power Output (kWh)', color='blue')
+#plt.plot(power_difference['datetime'], power_difference['power_difference_kwh'], label='Power Difference (kWh)', color='orange')
+#plt.plot(load_profile['datum_startuur'], load_profile['volume_afname_kwh'], label='Load Profile (kWh)', color='red')
+#plt.xlabel('Datetime')
+#plt.ylabel('Energy (kWh)')
+#plt.title('Power Output, Power Difference, and Load Profile')
+#plt.grid(True)
+#plt.legend()
+#plt.tight_layout()
+#
+## Save the plot as an image
+#plt.savefig('results/power_output_difference_load_profile.png')
+#plt.show()
 # Debug: Print the power_difference DataFrame to verify its structure
 #print("Power Difference DataFrame:")
 #print(power_difference.head())
@@ -94,25 +112,7 @@ power_difference.to_excel('results/power_difference.xlsx', index=False)
 # Calculate the total surplus
 print('Total surplus:', power_difference["power_difference_kwh"].sum(), 'kWh')
 
-# Calculate the average daily power difference
-average_daily_difference = calculate_average_daily_power_difference(power_difference)
 
-# Save the results to a new Excel file
-average_daily_difference.to_excel('results/average_daily_power_difference.xlsx', index=False)
-'''
-# Plot the results
-plt.figure(figsize=(10, 6))
-plt.plot(average_daily_difference["TimeOfDay"], average_daily_difference["Power_Difference_kWh"], label="Average Power Difference (kWh)", color="green")
-plt.xlabel("Time of Day")
-plt.ylabel("Average Power Difference (kWh)")
-plt.title("Average Daily Power Difference Over a Year")
-plt.xticks(rotation=45)
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.savefig('results/average_daily_power_difference_plot.png')  # Save the plot as an image
-plt.show()
-'''
 
 # Debug: Print the load_profile DataFrame to verify its structure
 #print("Load Profile Columns (before reset):", load_profile.columns)
@@ -122,13 +122,26 @@ plt.show()
 if 'Datum_Startuur' not in load_profile.columns:
     load_profile = load_profile.reset_index()  # Reset index to make 'Datum_Startuur' a column
 
+
 # Debug: Print the load_profile DataFrame to verify its structure after reset
 #print("Load Profile Columns (after reset):", load_profile.columns)
 #print(load_profile.head())
 
 # Call charge_battery with the correct power_output and load_profile
-charge_schedule = charge_battery(battery_capacity, power_output, belpex_data, load_profile)
+charge_schedule, merged_data = charge_battery(battery_capacity, power_output, belpex_data, load_profile)
 #print('Charge schedule:', charge_schedule)
+
+# Convert charge_schedule dictionary to a DataFrame
+charge_schedule_df = pd.DataFrame([
+    {'Day': day, 'Hour': hour} for day, hours in charge_schedule.items() for hour in hours
+])
+
+# Save the charge_schedule DataFrame to an Excel file
+charge_schedule_df.to_excel('results/charge_schedule.xlsx', index=False)
+merged_data.to_excel('results/merge_data.xlsx', index=False)
+#power_output.to_excel('results/power_output6.xlsx', index=False)
+#load_profile.to_excel('results/load_profile6.xlsx', index=False)
+#power_difference.to_excel('results/power_difference6.xlsx', index=False)
 
 # Prepare data for the heatmap
 days = sorted(charge_schedule.keys())  # Sorted list of days
@@ -139,7 +152,7 @@ heatmap_data = np.zeros((len(days), len(hours)))  # Initialize a 2D array
 for i, day in enumerate(days):
     for hour in charge_schedule[day]:
         heatmap_data[i, hour] = 1  # Mark charging hours
-'''
+
 # Create the heatmap
 plt.figure(figsize=(12, 8))
 plt.imshow(heatmap_data, aspect='auto', cmap='Greens', origin='lower')
@@ -154,7 +167,7 @@ plt.tight_layout()
 # Save the plot as an image
 plt.savefig('results/charging_hours_heatmap.png')
 plt.show()
-'''
+
 # Prepare data for the plot
 charging_data = []
 
@@ -169,7 +182,7 @@ for day, hours in charge_schedule.items():
 
 # Combine all the filtered rows into a single DataFrame
 charging_data = pd.concat(charging_data)
-'''
+
 # Plot the charging power output
 plt.figure(figsize=(12, 6))
 plt.plot(charging_data['datetime'], charging_data['power_output_kwh'], label='Charging Power Output', color='blue')
@@ -183,7 +196,7 @@ plt.tight_layout()
 # Save the plot as an image
 plt.savefig('results/charging_power_output_plot.png')
 plt.show()
-'''
+
 # Filter the power_difference data for the first day of January
 first_day = power_difference[
     (power_difference['datetime'] >= pd.Timestamp('2024-01-01')) &

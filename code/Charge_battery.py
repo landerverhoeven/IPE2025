@@ -24,7 +24,7 @@ def charge_battery(battery_capacity, power_output, belpex_data, load_profile):
 
     # Calculate the power difference
     power_difference_data = calculate_power_difference(power_output, load_profile)
-
+    power_difference_data['power_difference_kwh'] = power_difference_data['power_difference_kwh'].clip(lower=0)
     # Resample power_difference_data to hourly intervals
     power_difference_data['datetime'] = pd.to_datetime(power_difference_data['datetime'])
     power_difference_data.set_index('datetime', inplace=True)
@@ -62,9 +62,11 @@ def charge_battery(battery_capacity, power_output, belpex_data, load_profile):
             hour = row['datetime'].hour
             power_difference = row['power_difference_kwh']
             
-            # Add power difference to the total
-            total_power += power_difference
-            charge_hours.append(hour)
+            # Only add the hour if power_difference is not 0
+            if power_difference != 0:
+                # Add power difference to the total
+                total_power += power_difference
+                charge_hours.append(hour)
             
             # Check if the battery capacity is reached
             if total_power >= battery_capacity:
@@ -73,4 +75,4 @@ def charge_battery(battery_capacity, power_output, belpex_data, load_profile):
         # Store the charging hours for the day
         charge_schedule[day] = charge_hours
     
-    return charge_schedule
+    return charge_schedule, merged_data
