@@ -64,7 +64,7 @@ def day_night_electricity_cost(price_day, price_night, injection_price, load_con
     # Remove timezone information from date_time column
     load_consumption['Datum_Startuur'] = load_consumption['Datum_Startuur'].dt.tz_localize(None)
     # Save the results to a new file
-    load_consumption.to_excel(r'results\electricity_cost_results_day_night.xlsx', index=False)
+    #load_consumption.to_excel('results\\electricity_cost_results_day_night.xlsx', index=False)
     
     # Print somle useful information
     #print('total electricity costs:', total_electricity_cost, 'eur')
