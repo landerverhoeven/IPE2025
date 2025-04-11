@@ -114,7 +114,7 @@ print('night load:', load_night['Volume_Afname_kWh'].sum(), 'kWh')
 load_profile['Datum_Startuur'] = load_profile['Datum_Startuur'].dt.tz_localize(None)
 
 # Save the results to a new file
-load_profile.to_excel(r'results/electricity_cost_results_day_night.xlsx', index=False)
+load_profile.to_excel(r'results\electricity_cost_results_day_night.xlsx', index=False)
 
 # Plot the total cost per 15min
 plt.plot(load_profile['Datum_Startuur'], load_profile['total_cost_per_15min'])
