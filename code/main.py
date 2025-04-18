@@ -27,38 +27,8 @@ scissor_lift_cost = 170  # incl. vat
 installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
 
-<<<<<<< HEAD
 #average_power(N, beta, A, eta, phi_panel)
 power_output_data = power_output(N, beta, A, eta, phi_panel)
-=======
-# File paths (using os.path.join for cross-platform compatibility)
-data_folder = "data"
-belpex_path = os.path.join(data_folder, "Belpex_2024.xlsx")
-load_profile_path = os.path.join(data_folder, "Load_profile_8.xlsx")
-irradiance_path = os.path.join(data_folder, "Irradiance_data.xlsx")
-
-# Read and correct all the data files
-data, power_output, load_profile, belpex_data = all_correct_data_files(pd.read_excel(irradiance_path), pd.read_excel(load_profile_path), pd.read_excel(belpex_path), WP_panel, N_module, tilt_module, azimuth_module)
-
-power_per_year(power_output, load_profile)
-average_power(power_output, load_profile)
-
-# Debug: Print the power_output DataFrame to verify its structure
-#print("Power Output Columns:", power_output.columns)
-#print(power_output.head())
-
-# Ensure power_output has 'DateTime' as a column
-if 'DateTime' not in power_output.columns:
-    power_output = power_output.reset_index()  # Reset index to make 'DateTime' a column
-
-
-# Debug: Print the power_output DataFrame to verify its structure after reset
-#print("Power Output Columns (after reset):", power_output.columns)
-#print(power_output.head())
-
-# Calculate total cost using in-memory data
-total_cost = calculate_total_dynamic_cost(data)
->>>>>>> 2d19e530d637c0d8e9fc0d6a7c259363502788c1
 
 # Cost in case of day/night tariff
 # Prices for day and night source: engie (vtest)
@@ -67,7 +37,6 @@ price_night = 0.1180  # Example price for night
 injection_price = 0.0465  # Example price for injection
 
 # Calculate day and night electricity cost
-<<<<<<< HEAD
 # VERY IMPORTANT: 
 # Change the load_profile and power_output_data to the actual amount that is subtracted from and injected in the grid
 # this is an example for the simple situation where there is no battery:
@@ -92,15 +61,6 @@ power_output_day = power_output_data[power_output_data['DateTime'].apply(is_dayt
 power_output_night = power_output_data[~power_output_data['DateTime'].apply(is_daytime)]
 print('Day power output:', power_output_day['Power_Output_kWh'].sum(), 'kWh')
 print('Night power output:', power_output_night['Power_Output_kWh'].sum(), 'kWh')
-=======
-load_profile, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output)
-
-# Load day and night
-#load_day = load_profile[load_profile['Datum_Startuur'].apply(is_daytime)]
-#load_night = load_profile[~load_profile['Datum_Startuur'].apply(is_daytime)]
-#print('day load:', load_day['Volume_Afname_kWh'].sum(), 'kWh')
-#print('night load:', load_night['Volume_Afname_kWh'].sum(), 'kWh')
->>>>>>> 2d19e530d637c0d8e9fc0d6a7c259363502788c1
 
 
 '''
