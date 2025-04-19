@@ -12,13 +12,13 @@ from battery1 import calculate_power_difference
 from battery1 import calculate_average_daily_power_difference
 from average_power import average_power
 from Charge_battery import charge_battery
-
+from calculations_power import calculation_power_output
 
 # Constants for PV system
 tilt_module = np.radians(30)  # Panel tilt angle (radians)
 azimuth_module = np.radians(90)  # Panel azimuth angle (radians)
 WP_panel = 350  # Panel power (W)
-N_module = 20  # Number of panels
+N_module = 15  # Number of panels
 
 battery_capacity = 3  # Battery capacity (kWh)
 
@@ -39,6 +39,7 @@ price_day = 0.1489  # Example price for day
 price_night = 0.1180  # Example price for night
 injection_price = 0.0465  # Example price for injection
 
+# Visualize the data
 power_per_year(power_output, load_profile)
 average_power(power_output, load_profile)
 
