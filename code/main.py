@@ -27,8 +27,11 @@ scissor_lift_cost = 170  # incl. vat
 installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
 
-#average_power(N, beta, A, eta, phi_panel)
-power_output_data = power_output(N, beta, A, eta, phi_panel)
+# Calculate power_output, load_profile, and belpex_data
+power_output_data = pd.read_excel('data/Irradiance_data.xlsx')
+load_profile_data = pd.read_excel('data/Load_profile_8.xlsx')
+belpex_data_data = pd.read_excel('data/Belpex_data.xlsx')
+data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_data, load_profile_data, belpex_data_data, WP_panel, N_module, tilt_module, azimuth_module)
 
 # Cost in case of day/night tariff
 # Prices for day and night source: engie (vtest)
@@ -38,13 +41,13 @@ injection_price = 0.0465  # Example price for injection
 
 # Calculate day and night electricity cost
 # VERY IMPORTANT: 
-# Change the load_profile and power_output_data to the actual amount that is subtracted from and injected in the grid
+# Change the load_profile and power_output to the actual amount that is subtracted from and injected in the grid
 # this is an example for the simple situation where there is no battery:
-difference = load_profile['Volume_Afname_kWh'] - power_output_data['Power_Output_kWh']
+difference = load_profile['Volume_Afname_kWh'] - power_output['Power_Output_kWh']
 load_profile['Volume_Afname_kWh'] = np.where(difference < 0, 0, difference)
-power_output_data['Power_Output_kWh'] = np.where(difference < 0, -difference, 0)
+power_output['Power_Output_kWh'] = np.where(difference < 0, -difference, 0)
 
-load_profile, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output_data)
+load_profile, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output)
 
 # Print somle useful information
 print('total electricity costs:', totalelectricity, 'eur')
