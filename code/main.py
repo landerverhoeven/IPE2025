@@ -30,7 +30,7 @@ uniet_solar_panel_cost = 110  # incl. vat
 # Calculate power_output, load_profile, and belpex_data
 power_output_data = pd.read_excel('data/Irradiance_data.xlsx')
 load_profile_data = pd.read_excel('data/Load_profile_8.xlsx')
-belpex_data_data = pd.read_excel('data/Belpex_data.xlsx')
+belpex_data_data = pd.read_excel('data/Belpex_2024.xlsx')
 data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_data, load_profile_data, belpex_data_data, WP_panel, N_module, tilt_module, azimuth_module)
 
 # Cost in case of day/night tariff
@@ -38,6 +38,9 @@ data, power_output, load_profile, belpex_data = all_correct_data_files(power_out
 price_day = 0.1489  # Example price for day
 price_night = 0.1180  # Example price for night
 injection_price = 0.0465  # Example price for injection
+
+power_per_year(power_output, load_profile)
+average_power(power_output, load_profile)
 
 # Calculate day and night electricity cost
 # VERY IMPORTANT: 

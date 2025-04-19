@@ -26,9 +26,6 @@ def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, ir
         longitude=longitude
     )
 
-    # Convert apparent_zenith to numeric and fill NaN values with 90.
-    solar_position["apparent_zenith"] = pd.to_numeric(solar_position["apparent_zenith"], errors="coerce").fillna(90).astype(float)
-    
     # Align solar_position with irradiance_data by copying the index
     solar_position.index = irradiance_data.index
 
@@ -52,23 +49,7 @@ def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, ir
     )
 
     # Determine the ambient temperature column depending on the tilt angle
-    T_cell = irradiance_data["T_RV_degC"] if tilt_module > np.radians(10) else irradiance_data["T_CommRoof_degC"]
-
-    # Use the open_rack_glass_glass parameters from pvlib
-    temperature_parameters = pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS['sapm']['open_rack_glass_glass']
-    a = temperature_parameters['a']
-    b = temperature_parameters['b']
-    deltaT = temperature_parameters['deltaT']
-
-    # Calculate cell temperature
-    irradiance_data["T_cell"] = pvlib.temperature.sapm_cell(
-        poa_global=poa["poa_global"],
-        temp_air=T_cell,
-        wind_speed=1.0,  # Assumed wind speed
-        a=a,
-        b=b,
-        deltaT=deltaT
-    )
+    irradiance_data["T_cell"] = irradiance_data["T_RV_degC"] if tilt_module > np.radians(10) else irradiance_data["T_CommRoof_degC"]
 
     # Calculate the DC power output using the PVWatts model and convert from W to kW
     irradiance_data["Power_Output_kW"] = pvlib.pvsystem.pvwatts_dc(
