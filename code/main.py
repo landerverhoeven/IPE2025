@@ -12,7 +12,6 @@ from battery1 import calculate_power_difference
 from battery1 import calculate_average_daily_power_difference
 from average_power import average_power
 from Charge_battery import charge_battery
-from calculations_power import calculation_power_output
 
 # Constants for PV system
 tilt_module = np.radians(30)  # Panel tilt angle (radians)
