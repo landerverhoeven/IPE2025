@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 def calculate_power_difference(power_output, load_profile):
     """
@@ -48,6 +49,25 @@ def calculate_power_difference(power_output, load_profile):
 
     # Calculate the power difference
     merged_data['power_difference_kwh'] = merged_data['power_output_kwh'] - merged_data['volume_afname_kwh']
+    merged_data['power_difference_kwh'] = merged_data['power_difference_kwh'].clip(lower=0)
+    merged_data.to_excel('power_difference.xlsx', index=False)  # Save merged data for debugging
+    ## Plot power_output, power_difference, and load_profile on the same graph
+    plt.figure(figsize=(12, 6))
+    plt.plot(power_output['datetime'], power_output['power_output_kwh'], label='Power Output (kWh)', color='blue')
+    plt.plot(merged_data['datetime'], merged_data['power_difference_kwh'], label='Power Difference (kWh)', color='orange')
+    plt.plot(load_profile['datum_startuur'], load_profile['volume_afname_kwh'], label='Load Profile (kWh)', color='red')
+    plt.xlabel('Datetime')
+    plt.ylabel('Energy (kWh)')
+    plt.title('Power Output, Power Difference, and Load Profile')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+
+    # Save the plot as an image
+    plt.savefig('results/power_output_difference_load_profile.png')
+    plt.show()
+
+    print('Total surplus:', merged_data["power_difference_kwh"].sum(), 'kWh')
 
     return merged_data[['datetime', 'power_difference_kwh']]
 
