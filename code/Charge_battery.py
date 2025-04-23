@@ -50,6 +50,8 @@ def charge_battery(battery_capacity, power_output, belpex_data, load_profile):
     grouped = merged_data.groupby('day')
     
     charge_schedule = {}
+    current_charge = 0  # Initialize the current charge of the battery
+    charge_tracking = []  # List to track the current charge over time
 
     # Process each day
     for day, group in grouped:
@@ -66,16 +68,42 @@ def charge_battery(battery_capacity, power_output, belpex_data, load_profile):
             
             # Only add the hour if power_difference is not 0
             if power_difference != 0:
-                # Add power difference to the total
+                # Add power difference to the total and update current charge
                 total_power += power_difference
+                current_charge += power_difference
                 charge_hours.append(hour)
+                
+                # Cap the charge at the battery capacity
+                if current_charge > battery_capacity:
+                    current_charge = battery_capacity
+                
+                # Track the current charge
+                charge_tracking.append({'datetime': row['datetime'], 'current_charge': current_charge})
             
             # Check if the battery capacity is reached
-            if total_power >= battery_capacity:
+            if current_charge >= battery_capacity:
                 break
         
         # Store the charging hours for the day
         charge_schedule[day] = charge_hours
+
+    # Convert charge_tracking to a DataFrame
+    charge_tracking_df = pd.DataFrame(charge_tracking)
+
+    # Plot the current charge over time
+    plt.figure(figsize=(12, 6))
+    plt.plot(charge_tracking_df['datetime'], charge_tracking_df['current_charge'], label='Current Charge', color='green')
+    plt.xlabel('Datetime')
+    plt.ylabel('Battery Charge (kWh)')
+    plt.title('Battery Charge Over Time')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+
+    # Save the plot as an image
+    plt.savefig('results/current_charge_plot.png')
+    plt.show()
+
     charge_schedule_df = pd.DataFrame([
     {'Day': day, 'Hour': hour} for day, hours in charge_schedule.items() for hour in hours
 ])
