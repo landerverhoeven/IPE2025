@@ -1,3 +1,5 @@
+import time
+start_time = time.time()
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -27,16 +29,33 @@ scissor_lift_cost = 170  # incl. vat
 installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
 
-# Calculate power_output, load_profile, and belpex_data
-power_output_data = pd.read_excel('data/Irradiance_data.xlsx')
-load_profile_data = pd.read_excel('data/Load_profile_8.xlsx')
-belpex_data_data = pd.read_excel('data/Belpex_2024.xlsx')
-data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_data, load_profile_data, belpex_data_data, WP_panel, N_module, tilt_module, azimuth_module)
+end_time = time.time()
+print(f"Runtime for importing packages: {end_time - start_time:.2f} seconds")
 
+# Calculate power_output, load_profile, and belpex_data
+start_time = time.time()
+power_output_data = pd.read_excel('data/Irradiance_data.xlsx')
+end_time = time.time()
+print(f"Runtime for reading irradiance_data: {end_time - start_time:.2f} seconds")
+start_time = time.time()
+load_profile_data = pd.read_excel('data/Load_profile_8.xlsx')
+end_time = time.time()
+print(f"Runtime for reading load profile 8: {end_time - start_time:.2f} seconds")
+start_time = time.time()
+belpex_data_data = pd.read_excel('data/Belpex_2024.xlsx')
+end_time = time.time()
+print(f"Runtime for reading belpex: {end_time - start_time:.2f} seconds")
+start_time = time.time()
+data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_data, load_profile_data, belpex_data_data, WP_panel, N_module, tilt_module, azimuth_module)
+end_time = time.time()
+print(f"Runtime for correcting all data files: {end_time - start_time:.2f} seconds")
+print("main: ", load_profile.head())
 # Cost in case of day/night tariff
+load_profile2 = load_profile.copy()
+power_output2 = power_output.copy()
 # Prices for day and night source: engie (vtest)
-price_day = 0.1489  # Example price for day
-price_night = 0.1180  # Example price for night
+price_day = 0.1489 + 0.0117 + 0.0042 # Price for day + green energy + WKK
+price_night = 0.1180 + 0.0117 + 0.0042 # Price for night + green energy + WKK
 injection_price = 0.0465  # Example price for injection
 
 # Visualize the data
@@ -47,11 +66,11 @@ average_power(power_output, load_profile)
 # VERY IMPORTANT: 
 # Change the load_profile and power_output to the actual amount that is subtracted from and injected in the grid
 # this is an example for the simple situation where there is no battery:
-difference = load_profile['Volume_Afname_kWh'] - power_output['Power_Output_kWh']
-load_profile['Volume_Afname_kWh'] = np.where(difference < 0, 0, difference)
-power_output['Power_Output_kWh'] = np.where(difference < 0, -difference, 0)
+# difference = load_profile['Volume_Afname_kWh'] - power_output['Power_Output_kWh']
+# load_profile['Volume_Afname_kWh'] = np.where(difference < 0, 0, difference)
+# power_output['Power_Output_kWh'] = np.where(difference < 0, -difference, 0)
 
-load_profile, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output)
+variable_data, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output)
 
 # Print somle useful information
 print('total electricity costs:', totalelectricity, 'eur')
@@ -64,8 +83,9 @@ load_day = load_profile[load_profile['Datum_Startuur'].apply(is_daytime)]
 load_night = load_profile[~load_profile['Datum_Startuur'].apply(is_daytime)]
 print('day load:', load_day['Volume_Afname_kWh'].sum(), 'kWh')
 print('night load:', load_night['Volume_Afname_kWh'].sum(), 'kWh')
-power_output_day = power_output_data[power_output_data['DateTime'].apply(is_daytime)]
-power_output_night = power_output_data[~power_output_data['DateTime'].apply(is_daytime)]
+print(power_output.head())
+power_output_day = power_output[power_output['DateTime'].apply(is_daytime)]
+power_output_night = power_output[~power_output['DateTime'].apply(is_daytime)]
 print('Day power output:', power_output_day['Power_Output_kWh'].sum(), 'kWh')
 print('Night power output:', power_output_night['Power_Output_kWh'].sum(), 'kWh')
 

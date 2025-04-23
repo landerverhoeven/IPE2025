@@ -55,7 +55,7 @@ def day_night_electricity_cost(price_day, price_night, injection_price, load_con
     total_network_costs = load_consumption['network_costs_per_15min'].sum() + capacity_tarrif * kw_peak + data_management_fee
     total_taxes = load_consumption['taxes'].sum()
     total_injected_income = load_consumption['income_energy_injected'].sum()
-    print('total_injected_income:', total_injected_income, 'eur')
+    #print('total_injected_income:', total_injected_income, 'eur')
     total_cost_fullyear = total_electricity_cost + total_network_costs + total_taxes + total_injected_income
     # just to check if the calculation is correct
     #total_cost_fullyear2 = load_consumption['total_cost_per_15min'].sum() + fixed_fee + capacity_tarrif * kw_peak + data_management_fee
@@ -71,7 +71,7 @@ def day_night_electricity_cost(price_day, price_night, injection_price, load_con
     #print('total electricity costs:', total_electricity_cost, 'eur')
     #print('network costs:', total_network_costs, 'eur')
     #print('taxes:', total_taxes, 'eur')
-    print('total costs:', total_cost_fullyear, 'eur')
+    #print('total costs:', total_cost_fullyear, 'eur')
 
     return load_consumption, total_electricity_cost, total_network_costs, total_taxes, total_cost_fullyear
 
