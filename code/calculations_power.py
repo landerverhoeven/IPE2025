@@ -1,6 +1,7 @@
 import pandas as pd
 import pvlib
 import numpy as np
+import matplotlib.pyplot as plt
 
 def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data):
     # Constants for PV system
@@ -61,5 +62,5 @@ def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, ir
 
     # Convert power to energy (kWh) for 1-minute intervals
     irradiance_data["Power_Output_kWh"] = irradiance_data["Power_Output_kW"] / 60
-
+    
     return irradiance_data[["DateTime", "Power_Output_kWh"]]

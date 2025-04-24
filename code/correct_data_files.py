@@ -128,7 +128,6 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
     power_output = pd.DataFrame()
 
     power_output = calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data)
-
     # Resample to 15-minute intervals
     power_output = power_output.set_index('DateTime').resample('15min').sum().reset_index()
 
@@ -198,8 +197,8 @@ def all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, 
 
     # Make all the timestamps timezone-aware
     belpex_data["datetime"] = belpex_data["datetime"].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
-    power_output["DateTime"] = power_output["DateTime"].dt.tz_convert("Europe/Brussels")
-    load_profile["Datum_Startuur"] = load_profile["Datum_Startuur"].dt.tz_convert("Europe/Brussels")
+    #power_output["DateTime"] = power_output["DateTime"].dt.tz_convert("Europe/Brussels")
+    #load_profile["Datum_Startuur"] = load_profile["Datum_Startuur"].dt.tz_convert("Europe/Brussels")
 
     data = pd.DataFrame()
     data['datetime'] = power_output['DateTime']

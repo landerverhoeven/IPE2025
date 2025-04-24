@@ -16,7 +16,6 @@ power_output_data = pd.read_excel('data/Irradiance_data.xlsx')
 load_profile_data = pd.read_excel('data/Load_profile_8.xlsx')
 belpex_data_data = pd.read_excel('data/Belpex_2024.xlsx')
 data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_data, load_profile_data, belpex_data_data, WP_panel, N_module, tilt_module, azimuth_module)
-
 # Save the corrected data to a csv file
 data.to_pickle('data/Corrected_data.pkl')
 power_output.to_pickle('data/Corrected_power_output.pkl')

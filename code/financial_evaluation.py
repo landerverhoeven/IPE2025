@@ -11,18 +11,6 @@ from dynamic_electricity_cost import calculate_total_dynamic_cost
 
 # CAPEX (Capital Expenditure) calculation
 def calculate_capex(investment_cost, financing_rate, financing_period):
-    """
-    Calculate the Capital Expenditure (CAPEX) for a project.
-
-    Parameters:
-        investment_cost (float): The total cost of the project.
-        financing_rate (float): The interest rate for financing.
-        financing_period (int): The period over which the financing is spread.
-
-    Returns:
-        float: The CAPEX value.
-    """
-    # Calculate the CAPEX using the formula
     capex = investment_cost# * (1 + financing_rate) ** financing_period
     return capex
 

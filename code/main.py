@@ -35,8 +35,8 @@ data = pd.read_pickle('data/Corrected_data.pkl')
 
 
 # Visualize the data
-#power_per_year(power_output, load_profile)
-#average_power(power_output, load_profile)
+power_per_year(power_output, load_profile)
+average_power(power_output, load_profile)
 
 
 
@@ -137,3 +137,4 @@ plt.tight_layout()
 plt.savefig('results/power_output_and_load_profile_january_1st.png')
 plt.show()
 '''
+
