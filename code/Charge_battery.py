@@ -59,6 +59,8 @@ def charge_battery(battery_capacity, power_difference, data):
         
         total_power = 0
         charge_hours = []
+        charge_power = []  # List to store the power charged during each hour
+        charge_levels = []  # List to store the current charge level after each hour
         
         # Iterate through the sorted hours
         for _, row in sorted_group.iterrows():
@@ -71,20 +73,30 @@ def charge_battery(battery_capacity, power_difference, data):
                 total_power += power_difference1
                 current_charge += power_difference1
                 charge_hours.append(hour)
+                charge_power.append(power_difference1)  # Track the power charged during this hour
+                charge_levels.append(current_charge)  # Track the current charge level
+                
+                # Add to charge_tracking for plotting
+                charge_tracking.append({
+                    'datetime': row['datetime'],  # Ensure this column exists in the data
+                    'current_charge': current_charge
+                })
                 
                 # Cap the charge at the battery capacity
                 if current_charge > battery_capacity:
+                    # Adjust the last charged power to avoid exceeding capacity
+                    excess_power = current_charge - battery_capacity
+                    charge_power[-1] -= excess_power
                     current_charge = battery_capacity
-                
-                # Track the current charge
-                charge_tracking.append({'datetime': row['datetime'], 'current_charge': current_charge})
-            
-            # Check if the battery capacity is reached
-            if current_charge >= battery_capacity:
-                break
+                    charge_levels[-1] = current_charge  # Update the capped charge level
+                    break  # Stop charging as the battery is full
         
-        # Store the charging hours for the day
-        charge_schedule[day] = charge_hours
+        # Store the charging hours, power, and current charge levels for the day
+        charge_schedule[day] = {
+            'hours': charge_hours,
+            'power': charge_power,
+            'current_charge': charge_levels
+        }
 
     # Convert charge_tracking to a DataFrame
     charge_tracking_df = pd.DataFrame(charge_tracking)
@@ -104,7 +116,7 @@ def charge_battery(battery_capacity, power_difference, data):
     plt.show()
 
     charge_schedule_df = pd.DataFrame([
-    {'Day': day, 'Hour': hour} for day, hours in charge_schedule.items() for hour in hours
+    {'Day': day, 'Hour': hour} for day, hours in charge_schedule.items() for hour in hours['hours']
 ])
 
 # Save the charge_schedule DataFrame to an Excel file
@@ -121,7 +133,7 @@ def charge_battery(battery_capacity, power_difference, data):
 
     # Populate the heatmap data
     for i, day in enumerate(days):
-        for hour in charge_schedule[day]:
+        for hour in charge_schedule[day]['hours']:
             heatmap_data[i, hour] = 1  # Mark charging hours
 
     # Create the heatmap

@@ -114,13 +114,13 @@ charge_schedule, merged_data = charge_battery(battery_capacity, power_difference
 
 # Convert charge_schedule dictionary to a DataFrame
 
-
+'''
 # Filter the power_difference data for the first day of January
 first_day = power_difference[
     (power_difference['datetime'] >= pd.Timestamp('2024-01-01')) &
     (power_difference['datetime'] < pd.Timestamp('2024-01-02'))
 ]
-'''
+
 # Print the values for January 1st
 print("Power Difference Values on January 1st, 2024:")
 print(first_day)
