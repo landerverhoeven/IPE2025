@@ -58,8 +58,8 @@ price_night = 0.1180 + 0.0117 + 0.0042 # Price for night + green energy + WKK
 injection_price = 0.0465  # Example price for injection
 
 # Visualize the data
-power_per_year(power_output, load_profile)
-average_power(power_output, load_profile)
+#power_per_year(power_output, load_profile)
+#average_power(power_output, load_profile)
 
 # Calculate day and night electricity cost
 # VERY IMPORTANT: 
