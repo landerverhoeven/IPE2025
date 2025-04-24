@@ -27,50 +27,29 @@ scissor_lift_cost = 170  # incl. vat
 installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
 
-'''
-# Calculate power_output, load_profile, and belpex_data
-power_output_data = pd.read_excel('data/Irradiance_data.xlsx')
-load_profile_data = pd.read_excel('data/Load_profile_8.xlsx')
-belpex_data_data = pd.read_excel('data/Belpex_2024.xlsx')
-data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_data, load_profile_data, belpex_data_data, WP_panel, N_module, tilt_module, azimuth_module)
-'''
-start_time = time.time()
+# importing corrected files (first run data_configuration to correct the files)
 power_output = pd.read_pickle('data/Corrected_power_output.pkl')
 load_profile = pd.read_pickle('data/Corrected_load_profile.pkl')
 belpex_data = pd.read_pickle('data/Corrected_belpex_data.pkl')
 data = pd.read_pickle('data/Corrected_data.pkl')
-
-'''
-power_output['datetime'] = pd.to_datetime(power_output['DateTime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
-load_profile['Datum_Startuur'] = pd.to_datetime(load_profile['Datum_Startuur'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
-belpex_data['datetime'] = pd.to_datetime(belpex_data['datetime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
-data['datetime'] = pd.to_datetime(data['datetime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
-'''
-end_time = time.time()
-print('time to import files: ', end_time - start_time, ' seconds')
-print(data.head())
-
-# Cost in case of day/night tariff
 
 
 # Visualize the data
 #power_per_year(power_output, load_profile)
 #average_power(power_output, load_profile)
 
-# Calculate day and night electricity cost
-# VERY IMPORTANT: 
-# Change the load_profile and power_output to the actual amount that is subtracted from and injected in the grid
-# this is an example for the simple situation where there is no battery:
-# difference = load_profile['Volume_Afname_kWh'] - power_output['Power_Output_kWh']
-# load_profile['Volume_Afname_kWh'] = np.where(difference < 0, 0, difference)
-# power_output['Power_Output_kWh'] = np.where(difference < 0, -difference, 0)
 
-variable_data, totalcost = day_night_electricity_cost(data, [0])
-print('total cost:', totalcost, 'eur')
-print('variable data:', variable_data.head())
-print('data:', data.head())
+
+# Cost in case of day/night tariff
+variable_data, totalcost_variable = day_night_electricity_cost(data, [0])
+print(f'total variabel cost: {totalcost_variable:.2f} eur')
+
+# Cost in case of dynamic tariff
+totalcost_dynamic = calculate_total_dynamic_cost(data, [0])
+print(f'total dynamic cost: {totalcost_dynamic:.2f} eur')
+
+
 '''
-
 # Load day and night
 load_day = load_profile[load_profile['Datum_Startuur'].apply(is_daytime)]
 load_night = load_profile[~load_profile['Datum_Startuur'].apply(is_daytime)]
@@ -82,8 +61,6 @@ power_output_night = power_output[~power_output['DateTime'].apply(is_daytime)]
 print('Day power output:', power_output_day['Power_Output_kWh'].sum(), 'kWh')
 print('Night power output:', power_output_night['Power_Output_kWh'].sum(), 'kWh')
 
-
-
 # Plot the total cost per 15min
 plt.plot(load_profile['Datum_Startuur'], load_profile['total_cost_per_15min'])
 plt.xlabel('Date Time')
@@ -93,19 +70,20 @@ plt.xlim(pd.Timestamp('2022-01-01'), pd.Timestamp('2022-01-02'))
 plt.show()
 '''
 
+'''
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(data)
-
+'''
 
 # Ensure load_profile has 'Datum_Startuur' as a column
 #if 'Datum_Startuur' not in load_profile.columns:
 #    load_profile = load_profile.reset_index()  # Reset index to make 'Datum_Startuur' a column
 
-
+'''
 # Call charge_battery with the correct power_output and load_profile
 charge_schedule, merged_data = charge_battery(battery_capacity, power_difference, data)
 #print('Charge schedule:', charge_schedule)
-
+'''
 # Convert charge_schedule dictionary to a DataFrame
 
 '''
@@ -114,7 +92,7 @@ first_day = power_difference[
     (power_difference['datetime'] >= pd.Timestamp('2024-01-01')) &
     (power_difference['datetime'] < pd.Timestamp('2024-01-02'))
 ]
-'''
+
 # Print the values for January 1st
 print("Power Difference Values on January 1st, 2024:")
 print(first_day)

@@ -16,6 +16,10 @@ def day_night_electricity_cost(data, battery):
     injection_price = 0.0465  # Example price for injection
 
     # Initialize the cost columns
+    # Calculate the difference between the load profile and the power output
+    data['electricity_needed'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] + battery).apply(lambda x: x if x > 0 else 0)
+    data['electricity_injected'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] + battery).apply(lambda x: -x if x < 0 else 0)
+
     data['electricity_cost'] = 0
     data['network_costs_per_15min'] = 0
     data['taxes'] = 0
@@ -25,7 +29,7 @@ def day_night_electricity_cost(data, battery):
     # Calculate kW_peak
     kw_peak_sum = 0
     for month in data['datetime'].dt.month.unique():
-        kw_peak_month = data[data['datetime'].dt.month == month]['Volume_Afname_kWh'].max()
+        kw_peak_month = data[data['datetime'].dt.month == month]['electricity_needed'].max()
 #        #print(f'Month {month}: kW_peak_month = {kw_peak_month}')
         kw_peak_sum = kw_peak_sum + kw_peak_month
     kw_peak = kw_peak_sum / 12 * 4  # Average kW_peak per quarter hour
@@ -33,8 +37,8 @@ def day_night_electricity_cost(data, battery):
     # Calculate the electricity cost based on day and night tariffs
     data['electricity_cost'] = np.where(
         data['datetime'].apply(is_daytime),
-        price_day * data['Volume_Afname_kWh'],
-        price_night * data['Volume_Afname_kWh'])    
+        price_day * data['electricity_needed'],
+        price_night * data['electricity_needed'])    
     
     # fixed fee
     fixed_fee = 20 
@@ -51,10 +55,10 @@ def day_night_electricity_cost(data, battery):
 
 
     # calculate all cost per 15min
-    data['network_costs_per_15min'] = take_off_fee * data['Volume_Afname_kWh']
-    data['taxes'] = (energy_contribution+federal_energy_tax) * data['Volume_Afname_kWh'] # no taxes on income energy contribution
+    data['network_costs_per_15min'] = take_off_fee * data['electricity_needed']
+    data['taxes'] = (energy_contribution+federal_energy_tax) * data['electricity_needed'] # no taxes on income energy contribution
     data['total_cost_per_15min'] = data['electricity_cost'] + data['network_costs_per_15min'] + data['taxes']
-    data['income_energy_injected'] = -1 * injection_price * data['Power_Output_kWh']
+    data['income_energy_injected'] = -1 * injection_price * data['electricity_injected']
 
     # Calculate total cost for the year
     total_electricity_cost = data['electricity_cost'].sum() + fixed_fee

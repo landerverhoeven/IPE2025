@@ -86,6 +86,6 @@ def calculate_total_dynamic_cost(data, battery):
 
     # Total yearly cost
     total_cost = total_cost_energy_produced + total_network_cost + total_taxes
-    print(f"Total Cost (Yearly): €{total_cost:.2f}")
+    #print(f"Total Cost (Yearly): €{total_cost:.2f}")
 
     return total_cost
