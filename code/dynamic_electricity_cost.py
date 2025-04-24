@@ -2,7 +2,7 @@ import pandas as pd
 
 # SOURCE: ENGIE Electrabel - Dynamic electricity prices
 
-def calculate_total_dynamic_cost(data):
+def calculate_total_dynamic_cost(data, battery):
     data = data.copy()
 
     """
@@ -13,7 +13,7 @@ def calculate_total_dynamic_cost(data):
     vat_tarrif = 1.06  # VAT tariff
 
     # Calculate the difference between the load profile and the power output
-    data['electricity_needed'] = data['Volume_Afname_kWh'] - data['Power_Output_kWh']
+    data['electricity_needed'] = data['Volume_Afname_kWh'] - data['Power_Output_kWh'] - battery
     
     # Update the condition to handle element-wise comparison
     data['effective_electricity_needed'] = data['electricity_needed'].apply(lambda x: x if x > 0 else 0)

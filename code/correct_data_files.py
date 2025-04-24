@@ -206,5 +206,6 @@ def all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, 
     data['Power_Output_kWh'] = power_output['Power_Output_kWh']
     data['Volume_Afname_kWh'] = load_profile['Volume_Afname_kWh']
     data['Euro'] = belpex_data['Euro']
+    
 
     return data, power_output, load_profile, belpex_data

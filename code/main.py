@@ -20,7 +20,7 @@ azimuth_module = np.radians(90)  # Panel azimuth angle (radians)
 WP_panel = 350  # Panel power (W)
 N_module = 15  # Number of panels
 
-battery_capacity = 3  # Battery capacity (kWh)
+battery_capacity = 10  # Battery capacity (kWh)
 
 # Costs
 scissor_lift_cost = 170  # incl. vat
@@ -94,21 +94,21 @@ plt.show()
 '''
 
 # Calculate power difference for all timestamps
-power_difference = calculate_power_difference(power_output, load_profile)
+power_difference = calculate_power_difference(data)
 
 
 # Ensure load_profile has 'Datum_Startuur' as a column
-if 'Datum_Startuur' not in load_profile.columns:
-    load_profile = load_profile.reset_index()  # Reset index to make 'Datum_Startuur' a column
+#if 'Datum_Startuur' not in load_profile.columns:
+#    load_profile = load_profile.reset_index()  # Reset index to make 'Datum_Startuur' a column
 
 
 # Call charge_battery with the correct power_output and load_profile
-charge_schedule, merged_data = charge_battery(battery_capacity, power_output, belpex_data, load_profile)
+charge_schedule, merged_data = charge_battery(battery_capacity, power_difference, data)
 #print('Charge schedule:', charge_schedule)
 
 # Convert charge_schedule dictionary to a DataFrame
 
-
+'''
 # Filter the power_difference data for the first day of January
 first_day = power_difference[
     (power_difference['datetime'] >= pd.Timestamp('2024-01-01')) &
