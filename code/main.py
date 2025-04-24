@@ -80,18 +80,14 @@ power_difference = calculate_power_difference(data)
 #if 'Datum_Startuur' not in load_profile.columns:
 #    load_profile = load_profile.reset_index()  # Reset index to make 'Datum_Startuur' a column
 
-'''
+
 # Call charge_battery with the correct power_output and load_profile
 charge_schedule, data, end_of_day_charge_level = charge_battery(battery_capacity, data)
 #print('Charge schedule:', charge_schedule)
-<<<<<<< HEAD
-=======
-'''
->>>>>>> 3cb5581609fb1b663ad54c590322fa30ade5732b
 # Convert charge_schedule dictionary to a DataFrame
 
 discharge_schedule = discharge_battery(data, end_of_day_charge_level)
-'''
+"""
 # Filter the power_difference data for the first day of January
 first_day = power_difference[
     (power_difference['datetime'] >= pd.Timestamp('2024-01-01')) &
@@ -141,4 +137,4 @@ plt.tight_layout()
 # Save the plot as an image
 plt.savefig('results/power_output_and_load_profile_january_1st.png')
 plt.show()
-'''
+"""
