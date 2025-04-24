@@ -49,6 +49,7 @@ def calculate_power_difference(data):
 
     # Calculate the power difference
     data['power_difference_kwh'] = data['Power_Output_kWh'] - data['Volume_Afname_kWh']
+    """"
     plt.figure(figsize=(12, 6))
     #plt.plot(data['datetime'], data['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
     plt.plot(data['datetime'], data['power_difference_kwh'], label='Power Difference (kWh)', color='orange')
@@ -59,7 +60,10 @@ def calculate_power_difference(data):
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
+    """
     data['power_difference_kwh'] = data['power_difference_kwh'].clip(lower=0)
+
+    """
     ## Plot power_output, power_difference, and load_profile on the same graph
     plt.figure(figsize=(12, 6))
     #plt.plot(data['datetime'], data['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
@@ -75,7 +79,7 @@ def calculate_power_difference(data):
     # Save the plot as an image
     plt.savefig('results/power_output_difference_load_profile.png')
     plt.show()
-
+    """
     print('Total surplus:', data["power_difference_kwh"].sum(), 'kWh')
 
     return data[['datetime', 'power_difference_kwh']]

@@ -14,6 +14,7 @@ from battery1 import calculate_power_difference
 from battery1 import calculate_average_daily_power_difference
 from average_power import average_power
 from Charge_battery import charge_battery
+from Discharge_battery import discharge_battery
 
 # Constants for PV system
 tilt_module = np.radians(30)  # Panel tilt angle (radians)
@@ -21,7 +22,7 @@ azimuth_module = np.radians(90)  # Panel azimuth angle (radians)
 WP_panel = 350  # Panel power (W)
 N_module = 15  # Number of panels
 
-battery_capacity = 10  # Battery capacity (kWh)
+battery_capacity = 5  # Battery capacity (kWh)
 
 # Costs
 scissor_lift_cost = 170  # incl. vat
@@ -109,11 +110,11 @@ power_difference = calculate_power_difference(data)
 
 
 # Call charge_battery with the correct power_output and load_profile
-charge_schedule, merged_data = charge_battery(battery_capacity, power_difference, data)
+charge_schedule, data, end_of_day_charge_level = charge_battery(battery_capacity, data)
 #print('Charge schedule:', charge_schedule)
-
 # Convert charge_schedule dictionary to a DataFrame
 
+discharge_schedule = discharge_battery(data, end_of_day_charge_level)
 '''
 # Filter the power_difference data for the first day of January
 first_day = power_difference[
