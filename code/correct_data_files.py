@@ -198,6 +198,8 @@ def all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, 
 
     # Make all the timestamps timezone-aware
     belpex_data["datetime"] = belpex_data["datetime"].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
+    power_output["DateTime"] = power_output["DateTime"].dt.tz_convert("Europe/Brussels")
+    load_profile["Datum_Startuur"] = load_profile["Datum_Startuur"].dt.tz_convert("Europe/Brussels")
 
     data = pd.DataFrame()
     data['datetime'] = power_output['DateTime']

@@ -1,5 +1,4 @@
 import time
-start_time = time.time()
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -28,38 +27,35 @@ scissor_lift_cost = 170  # incl. vat
 installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
 
-end_time = time.time()
-print(f"Runtime for importing packages: {end_time - start_time:.2f} seconds")
-
+'''
 # Calculate power_output, load_profile, and belpex_data
-start_time = time.time()
 power_output_data = pd.read_excel('data/Irradiance_data.xlsx')
-end_time = time.time()
-print(f"Runtime for reading irradiance_data: {end_time - start_time:.2f} seconds")
-start_time = time.time()
 load_profile_data = pd.read_excel('data/Load_profile_8.xlsx')
-end_time = time.time()
-print(f"Runtime for reading load profile 8: {end_time - start_time:.2f} seconds")
-start_time = time.time()
 belpex_data_data = pd.read_excel('data/Belpex_2024.xlsx')
-end_time = time.time()
-print(f"Runtime for reading belpex: {end_time - start_time:.2f} seconds")
-start_time = time.time()
 data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_data, load_profile_data, belpex_data_data, WP_panel, N_module, tilt_module, azimuth_module)
+'''
+start_time = time.time()
+power_output = pd.read_pickle('data/Corrected_power_output.pkl')
+load_profile = pd.read_pickle('data/Corrected_load_profile.pkl')
+belpex_data = pd.read_pickle('data/Corrected_belpex_data.pkl')
+data = pd.read_pickle('data/Corrected_data.pkl')
+
+'''
+power_output['datetime'] = pd.to_datetime(power_output['DateTime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+load_profile['Datum_Startuur'] = pd.to_datetime(load_profile['Datum_Startuur'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+belpex_data['datetime'] = pd.to_datetime(belpex_data['datetime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+data['datetime'] = pd.to_datetime(data['datetime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+'''
 end_time = time.time()
-print(f"Runtime for correcting all data files: {end_time - start_time:.2f} seconds")
-print("main: ", load_profile.head())
+print('time to import files: ', end_time - start_time, ' seconds')
+print(data.head())
+
 # Cost in case of day/night tariff
-load_profile2 = load_profile.copy()
-power_output2 = power_output.copy()
-# Prices for day and night source: engie (vtest)
-price_day = 0.1489 + 0.0117 + 0.0042 # Price for day + green energy + WKK
-price_night = 0.1180 + 0.0117 + 0.0042 # Price for night + green energy + WKK
-injection_price = 0.0465  # Example price for injection
+
 
 # Visualize the data
-power_per_year(power_output, load_profile)
-average_power(power_output, load_profile)
+#power_per_year(power_output, load_profile)
+#average_power(power_output, load_profile)
 
 # Calculate day and night electricity cost
 # VERY IMPORTANT: 
@@ -69,13 +65,11 @@ average_power(power_output, load_profile)
 # load_profile['Volume_Afname_kWh'] = np.where(difference < 0, 0, difference)
 # power_output['Power_Output_kWh'] = np.where(difference < 0, -difference, 0)
 
-variable_data, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output)
-
-# Print somle useful information
-print('total electricity costs:', totalelectricity, 'eur')
-print('network costs:', totalnetwork, 'eur')
-print('taxes:', totaltaxes, 'eur')
-print('total costs:', totalcost, 'eur')
+variable_data, totalcost = day_night_electricity_cost(data, [0])
+print('total cost:', totalcost, 'eur')
+print('variable data:', variable_data.head())
+print('data:', data.head())
+'''
 
 # Load day and night
 load_day = load_profile[load_profile['Datum_Startuur'].apply(is_daytime)]
@@ -89,7 +83,7 @@ print('Day power output:', power_output_day['Power_Output_kWh'].sum(), 'kWh')
 print('Night power output:', power_output_night['Power_Output_kWh'].sum(), 'kWh')
 
 
-'''
+
 # Plot the total cost per 15min
 plt.plot(load_profile['Datum_Startuur'], load_profile['total_cost_per_15min'])
 plt.xlabel('Date Time')
@@ -120,7 +114,7 @@ first_day = power_difference[
     (power_difference['datetime'] >= pd.Timestamp('2024-01-01')) &
     (power_difference['datetime'] < pd.Timestamp('2024-01-02'))
 ]
-
+'''
 # Print the values for January 1st
 print("Power Difference Values on January 1st, 2024:")
 print(first_day)
@@ -164,3 +158,4 @@ plt.tight_layout()
 # Save the plot as an image
 plt.savefig('results/power_output_and_load_profile_january_1st.png')
 plt.show()
+'''

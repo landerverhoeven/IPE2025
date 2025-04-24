@@ -23,7 +23,7 @@ def calculate_capex(investment_cost, financing_rate, financing_period):
         float: The CAPEX value.
     """
     # Calculate the CAPEX using the formula
-    capex = investment_cost * (1 + financing_rate) ** financing_period
+    capex = investment_cost# * (1 + financing_rate) ** financing_period
     return capex
 
 cost_panels = 5000
