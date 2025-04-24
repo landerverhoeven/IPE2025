@@ -71,10 +71,10 @@ plt.xlim(pd.Timestamp('2022-01-01'), pd.Timestamp('2022-01-02'))
 plt.show()
 '''
 
-'''
+
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(data)
-'''
+
 
 # Ensure load_profile has 'Datum_Startuur' as a column
 #if 'Datum_Startuur' not in load_profile.columns:
