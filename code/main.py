@@ -1,5 +1,4 @@
 import time
-start_time = time.time()
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -29,55 +28,29 @@ scissor_lift_cost = 170  # incl. vat
 installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
 
-end_time = time.time()
-print(f"Runtime for importing packages: {end_time - start_time:.2f} seconds")
+# importing corrected files (first run data_configuration to correct the files)
+power_output = pd.read_pickle('data/Corrected_power_output.pkl')
+load_profile = pd.read_pickle('data/Corrected_load_profile.pkl')
+belpex_data = pd.read_pickle('data/Corrected_belpex_data.pkl')
+data = pd.read_pickle('data/Corrected_data.pkl')
 
-# Calculate power_output, load_profile, and belpex_data
-start_time = time.time()
-power_output_data = pd.read_excel('data/Irradiance_data.xlsx')
-end_time = time.time()
-print(f"Runtime for reading irradiance_data: {end_time - start_time:.2f} seconds")
-start_time = time.time()
-load_profile_data = pd.read_excel('data/Load_profile_8.xlsx')
-end_time = time.time()
-print(f"Runtime for reading load profile 8: {end_time - start_time:.2f} seconds")
-start_time = time.time()
-belpex_data_data = pd.read_excel('data/Belpex_2024.xlsx')
-end_time = time.time()
-print(f"Runtime for reading belpex: {end_time - start_time:.2f} seconds")
-start_time = time.time()
-data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_data, load_profile_data, belpex_data_data, WP_panel, N_module, tilt_module, azimuth_module)
-end_time = time.time()
-print(f"Runtime for correcting all data files: {end_time - start_time:.2f} seconds")
-print("main: ", load_profile.head())
-# Cost in case of day/night tariff
-load_profile2 = load_profile.copy()
-power_output2 = power_output.copy()
-# Prices for day and night source: engie (vtest)
-price_day = 0.1489 + 0.0117 + 0.0042 # Price for day + green energy + WKK
-price_night = 0.1180 + 0.0117 + 0.0042 # Price for night + green energy + WKK
-injection_price = 0.0465  # Example price for injection
 
 # Visualize the data
 #power_per_year(power_output, load_profile)
 #average_power(power_output, load_profile)
 
-# Calculate day and night electricity cost
-# VERY IMPORTANT: 
-# Change the load_profile and power_output to the actual amount that is subtracted from and injected in the grid
-# this is an example for the simple situation where there is no battery:
-# difference = load_profile['Volume_Afname_kWh'] - power_output['Power_Output_kWh']
-# load_profile['Volume_Afname_kWh'] = np.where(difference < 0, 0, difference)
-# power_output['Power_Output_kWh'] = np.where(difference < 0, -difference, 0)
 
-variable_data, totalelectricity, totalnetwork, totaltaxes, totalcost = day_night_electricity_cost(price_day, price_night, injection_price, load_profile, power_output)
 
-# Print somle useful information
-print('total electricity costs:', totalelectricity, 'eur')
-print('network costs:', totalnetwork, 'eur')
-print('taxes:', totaltaxes, 'eur')
-print('total costs:', totalcost, 'eur')
+# Cost in case of day/night tariff
+variable_data, totalcost_variable = day_night_electricity_cost(data, [0])
+print(f'total variabel cost: {totalcost_variable:.2f} eur')
 
+# Cost in case of dynamic tariff
+totalcost_dynamic = calculate_total_dynamic_cost(data, [0])
+print(f'total dynamic cost: {totalcost_dynamic:.2f} eur')
+
+
+'''
 # Load day and night
 load_day = load_profile[load_profile['Datum_Startuur'].apply(is_daytime)]
 load_night = load_profile[~load_profile['Datum_Startuur'].apply(is_daytime)]
@@ -89,8 +62,6 @@ power_output_night = power_output[~power_output['DateTime'].apply(is_daytime)]
 print('Day power output:', power_output_day['Power_Output_kWh'].sum(), 'kWh')
 print('Night power output:', power_output_night['Power_Output_kWh'].sum(), 'kWh')
 
-
-'''
 # Plot the total cost per 15min
 plt.plot(load_profile['Datum_Startuur'], load_profile['total_cost_per_15min'])
 plt.xlabel('Date Time')
@@ -100,18 +71,23 @@ plt.xlim(pd.Timestamp('2022-01-01'), pd.Timestamp('2022-01-02'))
 plt.show()
 '''
 
+'''
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(data)
-
+'''
 
 # Ensure load_profile has 'Datum_Startuur' as a column
 #if 'Datum_Startuur' not in load_profile.columns:
 #    load_profile = load_profile.reset_index()  # Reset index to make 'Datum_Startuur' a column
 
-
+'''
 # Call charge_battery with the correct power_output and load_profile
 charge_schedule, data, end_of_day_charge_level = charge_battery(battery_capacity, data)
 #print('Charge schedule:', charge_schedule)
+<<<<<<< HEAD
+=======
+'''
+>>>>>>> 3cb5581609fb1b663ad54c590322fa30ade5732b
 # Convert charge_schedule dictionary to a DataFrame
 
 discharge_schedule = discharge_battery(data, end_of_day_charge_level)
