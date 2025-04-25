@@ -6,14 +6,15 @@ from calculations_power import calculation_power_output
 def correct_belpex_data(belpex_data):
     belpex_data = belpex_data.copy()  # Avoid SettingWithCopyWarning
 
-    # Ensure the 'Date' column is in string format
-    belpex_data['Date'] = belpex_data['Date'].astype(str)
+    # Ensure the 'Euro' column is cleaned and formatted
+    belpex_data['Euro'] = belpex_data['Euro'].str.replace(r'[^\d.,-]', '', regex=True)
+    belpex_data['Euro'] = belpex_data['Euro'].str.replace(',', '.').astype(float)
 
     # Append '00:00' to rows where only the date is present (no time)
-    belpex_data['Date'] = belpex_data['Date'].apply(lambda x: x if ':' in x else f"{x} 00:00")
+    belpex_data['Date'] = belpex_data['Date'].apply(lambda x: x if ':' in str(x) else f"{x} 00:00")
 
-    # Convert the 'Date' column to datetime format
-    belpex_data['datetime'] = pd.to_datetime(belpex_data['Date'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+    # Convert the 'Date' column to datetime format (if not already)
+    belpex_data['datetime'] = pd.to_datetime(belpex_data['Date'], format='%d/%m/%Y %H:%M:%S', errors='coerce')
 
     # Drop rows with invalid datetime values (NaT)
     belpex_data = belpex_data.dropna(subset=['datetime']).copy()
@@ -21,15 +22,11 @@ def correct_belpex_data(belpex_data):
     # Drop rows where the date is February 29
     belpex_data = belpex_data[~((belpex_data['datetime'].dt.month == 2) & (belpex_data['datetime'].dt.day == 29))]
 
-    # Convert the 'Euro' column to numeric and drop invalid rows
-    belpex_data['Euro'] = pd.to_numeric(belpex_data['Euro'], errors='coerce')
-    belpex_data = belpex_data.dropna(subset=['Euro']).copy()
-
     # Drop duplicate datetime values by aggregating numeric columns
     numeric_columns = belpex_data.select_dtypes(include='number').columns
     belpex_data = belpex_data.groupby('datetime', as_index=False)[numeric_columns].mean()
 
-    # Resample to 15-minute intervals
+    # Resample to 15-minute intervals using 'datetime' as the index
     belpex_data = belpex_data.set_index('datetime').resample('15min').ffill().reset_index()
 
     # Change the year of belpex_data to 2000

@@ -3,17 +3,17 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-from average_power import average_power
+from plot import average_power
 from dynamic_electricity_cost import calculate_total_dynamic_cost
 from day_night_electricity_cost import day_night_electricity_cost
 from day_night_electricity_cost import is_daytime
 from correct_data_files import all_correct_data_files
-from power_per_year import power_per_year
+from plot import power_per_year
 from battery1 import calculate_power_difference
 from battery1 import calculate_average_daily_power_difference
-from average_power import average_power
 from Charge_battery import charge_battery
 from Discharge_battery import discharge_battery
+from plot import belpex_visualisation
 
 # Constants for PV system
 tilt_module = np.radians(30)  # Panel tilt angle (radians)
@@ -29,17 +29,21 @@ installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
 
 # importing corrected files (first run data_configuration to correct the files)
-power_output = pd.read_pickle('data/Corrected_power_output.pkl')
-load_profile = pd.read_pickle('data/Corrected_load_profile.pkl')
-belpex_data = pd.read_pickle('data/Corrected_belpex_data.pkl')
-data = pd.read_pickle('data/Corrected_data.pkl')
+#power_output = pd.read_pickle('data/Corrected_power_output.pkl')
+#load_profile = pd.read_pickle('data/Corrected_load_profile.pkl')
+#belpex_data = pd.read_pickle('data/Corrected_belpex_data.pkl')
+#data = pd.read_pickle('data/Corrected_data.pkl')
 
+# The excel files
+power_output_old  = pd.read_csv('data/Irradiance_data.csv', parse_dates=['DateTime'])
+load_profile_old = pd.read_csv('data/Load_profile_8.csv', parse_dates=['Datum_Startuur'])
+belpex_data_old = pd.read_csv('data/Belpex_2024.csv', delimiter=';', parse_dates=['Date'], encoding='ISO-8859-1', dayfirst=True)
+data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, WP_panel, N_module, tilt_module, azimuth_module)
 
 # Visualize the data
 power_per_year(power_output, load_profile)
 average_power(power_output, load_profile)
-
-
+belpex_visualisation(belpex_data)
 
 # Cost in case of day/night tariff
 variable_data, totalcost_variable = day_night_electricity_cost(data, [0])
