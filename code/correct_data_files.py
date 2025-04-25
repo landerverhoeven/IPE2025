@@ -125,11 +125,18 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
     power_output = pd.DataFrame()
 
     power_output = calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data)
+    
+    # Set the 'DateTime' column as the index
+    power_output = power_output.set_index('DateTime', drop=False)
+    
     # Resample to 15-minute intervals
     power_output = power_output.set_index('DateTime').resample('15min').sum().reset_index()
 
-    # Change the year of load_profile to 2000
+    # Change the year of 'DateTime' to 2000
     power_output['DateTime'] = power_output['DateTime'].apply(lambda x: x.replace(year=2000))
+
+    # Drop rows with invalid datetime values (NaT) after year replacement
+    power_output = power_output.dropna(subset=['DateTime']).copy()
 
     # Identify zero power output periods
     power_output['is_zero'] = power_output['Power_Output_kWh'] == 0
@@ -139,11 +146,15 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
 
     # Identify groups where the zero period lasts more than 1 day (96 intervals for 15-minute data)
     zero_groups = power_output[power_output['is_zero']].groupby('group').size()
-    long_zero_groups = zero_groups[zero_groups > 96].index
+    long_zero_groups = zero_groups[zero_groups > 288].index
 
     # Handle long zero periods
     for group in long_zero_groups:
         period_power = power_output[power_output['group'] == group]
+
+        # Ensure period_power contains only full days with power == 0
+        full_days = period_power.groupby(period_power['DateTime'].dt.date).filter(lambda x: len(x) == 96)
+        period_power = period_power[period_power['DateTime'].dt.date.isin(full_days['DateTime'].dt.date)]
 
         # Get the start and end indices of the missing group
         start_idx = period_power.index.min()
@@ -155,10 +166,6 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
         # Create fake groups before and after the missing group
         before_period_power = power_output.loc[start_idx - group_length:start_idx - 1]
         after_period_power = power_output.loc[end_idx + 1:end_idx + group_length]
-
-        # Skip if fake groups are incomplete
-        if len(before_period_power) < group_length or len(after_period_power) < group_length:
-            continue
 
         # Calculate total power output for fake groups
         before_total = before_period_power['Power_Output_kWh'].sum()
@@ -174,13 +181,13 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
         power_output.loc[period_power.index, 'Power_Output_kWh'] = fill_data
 
     # Preserve single-day zero periods (do not change their values)
-    single_day_groups = zero_groups[zero_groups <= 96].index
+    single_day_groups = zero_groups[zero_groups <= 288].index
     for group in single_day_groups:
         power_output.loc[power_output['group'] == group, 'Power_Output_kWh'] = 0
 
     # Drop helper columns
     power_output = power_output.drop(columns=['is_zero', 'group'])
-
+    
     return power_output[["DateTime", "Power_Output_kWh"]]
 
 def all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, WP_panel, N_module, tilt_module, azimuth_module):

@@ -91,6 +91,7 @@ charge_schedule, data, end_of_day_charge_level = charge_battery(battery_capacity
 # Convert charge_schedule dictionary to a DataFrame
 
 discharge_schedule = discharge_battery(data, end_of_day_charge_level)
+
 '''
 # Filter the power_difference data for the first day of January
 first_day = power_difference[
