@@ -12,11 +12,18 @@ WP_panel = 350  # Panel power (W)
 N_module = 15  # Number of panels
 
 # Calculate power_output, load_profile, and belpex_data
+'''
 power_output_data = pd.read_excel('data/Irradiance_data.xlsx')
 load_profile_data = pd.read_excel('data/Load_profile_8.xlsx')
 belpex_data_data = pd.read_excel('data/Belpex_2024.xlsx')
+'''
+power_output_data  = pd.read_csv('data/Irradiance_data.csv', parse_dates=['DateTime'])
+load_profile_data = pd.read_csv('data/Load_profile_8.csv', parse_dates=['Datum_Startuur'])
+belpex_data_data = pd.read_csv('data/Belpex_2024.csv', delimiter=';', parse_dates=['Date'], encoding='ISO-8859-1', dayfirst=True)
+
 data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_data, load_profile_data, belpex_data_data, WP_panel, N_module, tilt_module, azimuth_module)
-# Save the corrected data to a csv file
+
+# Save the corrected data to a pickle file
 data.to_pickle('data/Corrected_data.pkl')
 power_output.to_pickle('data/Corrected_power_output.pkl')
 load_profile.to_pickle('data/Corrected_load_profile.pkl')

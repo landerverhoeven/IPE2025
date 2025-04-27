@@ -100,7 +100,7 @@ price_day = 0.1489  # Example price for day
 price_night = 0.1180  # Example price for night
 
 # Read data from Excel files
-# load_profile = pd.read_excel(r'data\Load_profile_8.xlsx')  # File with date-time and consumption values
+# load_profile = pd.read_excel(r'data\#Load_profile_8.xlsx')  # File with date-time and consumption values
 
 # Convert the first column to date_time format
 load_profile['Datum_Startuur'] = pd.to_datetime(load_profile.iloc[:, 0])
@@ -127,6 +127,27 @@ load_profile['Datum_Startuur'] = load_profile['Datum_Startuur'].dt.tz_localize(N
 
 # Save the results to a new file
 load_profile.to_excel(r'results\electricity_cost_results_day_night.xlsx', index=False)
+
+# Plot the total cost per 15min
+plt.plot(load_profile['Datum_Startuur'], load_profile['total_cost_per_15min'])
+plt.xlabel('Date Time')
+plt.ylabel('Total Cost per 15min')
+plt.title('Total Cost per 15min Over Time')
+plt.xlim(pd.Timestamp('2022-01-01'), pd.Timestamp('2022-01-02'))
+plt.show()
+'''
+
+'''
+# Load day and night
+load_day = load_profile[load_profile['Datum_Startuur'].apply(is_daytime)]
+load_night = load_profile[~load_profile['Datum_Startuur'].apply(is_daytime)]
+print('day load:', load_day['Volume_Afname_kWh'].sum(), 'kWh')
+print('night load:', load_night['Volume_Afname_kWh'].sum(), 'kWh')
+print(power_output.head())
+power_output_day = power_output[power_output['DateTime'].apply(is_daytime)]
+power_output_night = power_output[~power_output['DateTime'].apply(is_daytime)]
+print('Day power output:', power_output_day['Power_Output_kWh'].sum(), 'kWh')
+print('Night power output:', power_output_night['Power_Output_kWh'].sum(), 'kWh')
 
 # Plot the total cost per 15min
 plt.plot(load_profile['Datum_Startuur'], load_profile['total_cost_per_15min'])
