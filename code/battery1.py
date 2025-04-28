@@ -61,6 +61,7 @@ def calculate_power_difference(data):
     plt.legend()
     plt.tight_layout()
     """
+    data['power_difference_kwh_for_conventional'] = data['power_difference_kwh']
     data['power_difference_kwh'] = data['power_difference_kwh'].clip(lower=0)
 
     """

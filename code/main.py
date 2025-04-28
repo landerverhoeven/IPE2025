@@ -11,6 +11,7 @@ from battery1 import calculate_power_difference, calculate_average_daily_power_d
 from Charge_battery import charge_battery
 from Discharge_battery import discharge_battery
 from financial_evaluation import financial_evaluation
+from Conventional_charge_discharge import conventional_battery
 
 # Constants for PV system
 tilt_module = np.radians(30)  # Panel tilt angle (radians)
@@ -54,26 +55,27 @@ print(f"Data correction took {end_time - start_time:.2f} seconds")
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(data)
 
-# Ensure load_profile has 'Datum_Startuur' as a column
-#if 'Datum_Startuur' not in load_profile.columns:
-#    load_profile = load_profile.reset_index()  # Reset index to make 'Datum_Startuur' a column
-
+#CONVENTIONAL CHARGE/DISCHARGE
+conventional_charge_schedule, conventional_discharge_schedule = conventional_battery(battery_capacity, data)
 # Call charge_battery with the correct power_output and load_profile
 charge_schedule, data2, end_of_day_charge_level, battery = charge_battery(battery_capacity, data)
 #print("Charge schedule:")
 #print(charge_schedule)
 #discharge_schedule = discharge_battery(data, end_of_day_charge_level)
 
+
 print("Data with charge schedule:")
 print(battery.head())
 print(data2.head())
 
+'''''
 # FINANCIAL EVALUATION
 # Cost in case of day/night tariff and dynamic tariff
 variable_data, totalcost_variable = day_night_electricity_cost(data, [battery])
 totalcost_dynamic = calculate_total_dynamic_cost(data, [0])
 capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_dynamic = financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period)
 # !!!!!! investment_cost needs to be checked !!!!! (Staat in het begin van main)
+'''
 
 
 
