@@ -42,6 +42,7 @@ def charge_battery(battery_capacity, data):
 
 
     # Group data by day
+    data = data.copy()
     data['day'] = data['datetime'].dt.date
     
     grouped = data.groupby('day')
@@ -110,17 +111,46 @@ def charge_battery(battery_capacity, data):
     # Create a DataFrame for the charge schedule, including charge power and charge level
     charge_schedule_df = pd.DataFrame([
         {
+            'datetime': 0,
             'Day': day,
             'Hour': hour,
+            'Minute': 0,
             'Charge Power (kWh)': charge_schedule[day]['power'][i],
             'Charge Level (kWh)': charge_schedule[day]['current_charge'][i]
         }
         for day in charge_schedule
         for i, hour in enumerate(charge_schedule[day]['hours'])
     ])
+    print(charge_schedule_df.head())
+
+    # Change charge_schedule_df to match the format of the original data
+    charge_schedule_df['Minute'] = charge_schedule_df.groupby(['Day', 'Hour']).cumcount() * 15
+    charge_schedule_df['datetime'] = pd.to_datetime(
+        charge_schedule_df['Day'].astype(str) + ' ' +
+        charge_schedule_df['Hour'].astype(str) + ':' +
+        charge_schedule_df['Minute'].astype(str).str.zfill(2) + ':00'
+    )
+    #charge_schedule_df.set_index('datetime', inplace=True)
+    charge_schedule_df.drop(columns=['Day', 'Hour', 'Minute'], inplace=True)
 
     # Save the charge_schedule DataFrame to an Excel file
     charge_schedule_df.to_excel('results/charge_schedule.xlsx', index=False)
+
+    # make sure datetime is in the same timezone as the original data
+    charge_schedule_df['datetime'] = charge_schedule_df['datetime'].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
+
+    # Merge data with charge_schedule_df to include the original data columns
+    merged_data = pd.merge(data, charge_schedule_df, on='datetime', how='left', suffixes=('', '_charge'))
+    merged_data['Charge Power (kWh)'] = merged_data['Charge Power (kWh)'].fillna(0)
+    merged_data['Charge Level (kWh)'] = merged_data['Charge Level (kWh)'].fillna(0)
+    merged_data.drop(columns=['day', 'power_difference_kwh'], inplace=True)
+    print(merged_data.head())
+    print(merged_data.info())
+
+    battery = pd.DataFrame()
+    battery['datetime'] = merged_data['datetime']
+    battery['charge_power'] = merged_data['Charge Power (kWh)']
+    battery['charge_level'] = merged_data['Charge Level (kWh)']
 
     # Create a DataFrame for the end-of-day charge levels
     end_of_day_charge_df = pd.DataFrame(end_of_day_charge_levels)
@@ -154,7 +184,7 @@ def charge_battery(battery_capacity, data):
 
     # Save the plot as an image
     plt.savefig('results/charging_hours_heatmap.png')
-    plt.show()
+    #plt.show()
 
     ## Prepare data for the plot
     #charging_data = []
@@ -189,4 +219,4 @@ def charge_battery(battery_capacity, data):
     ## Save the plot as an image
     #plt.savefig('results/charging_power_output_plot.png')
     #plt.show()
-    return charge_schedule, data, end_of_day_charge_levels
+    return charge_schedule, data, end_of_day_charge_levels, battery

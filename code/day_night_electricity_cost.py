@@ -9,7 +9,12 @@ vat_tarrif = 1
 def day_night_electricity_cost(data, battery):
     # Electricity production
     data = data.copy()
-    battery = battery.copy()
+    # check if battery is dataframe or not
+    if isinstance(battery, pd.DataFrame):
+        battery = battery.copy()
+    else:
+        battery = pd.DataFrame({'charge_power': [0] * len(data)})
+
    # Prices for day and night source: engie (vtest)
     price_day = 0.1489 + 0.0117 + 0.0042 # Price for day + green energy + WKK
     price_night = 0.1180 + 0.0117 + 0.0042 # Price for night + green energy + WKK
@@ -17,8 +22,8 @@ def day_night_electricity_cost(data, battery):
 
     # Initialize the cost columns
     # Calculate the difference between the load profile and the power output
-    data['electricity_needed'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] + battery).apply(lambda x: x if x > 0 else 0)
-    data['electricity_injected'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] + battery).apply(lambda x: -x if x < 0 else 0)
+    data['electricity_needed'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] - battery['charge_power']).apply(lambda x: x if x > 0 else 0)
+    data['electricity_injected'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] - battery['charge_power']).apply(lambda x: -x if x < 0 else 0)
 
     data['electricity_cost'] = 0
     data['network_costs_per_15min'] = 0
