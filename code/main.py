@@ -3,17 +3,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-from average_power import average_power
+from plot import average_power, power_per_year, belpex_visualisation
 from dynamic_electricity_cost import calculate_total_dynamic_cost
 from day_night_electricity_cost import day_night_electricity_cost
-from day_night_electricity_cost import is_daytime
 from correct_data_files import all_correct_data_files
-from power_per_year import power_per_year
-from battery1 import calculate_power_difference
-from battery1 import calculate_average_daily_power_difference
-from average_power import average_power
+from battery1 import calculate_power_difference, calculate_average_daily_power_difference
 from Charge_battery import charge_battery
 from Discharge_battery import discharge_battery
+from financial_evaluation import financial_evaluation
 
 # Constants for PV system
 tilt_module = np.radians(30)  # Panel tilt angle (radians)
@@ -27,77 +24,73 @@ battery_capacity = 5  # Battery capacity (kWh)
 scissor_lift_cost = 170  # incl. vat
 installation_cost = 1200  # incl.vat
 uniet_solar_panel_cost = 110  # incl. vat
+investment_cost = scissor_lift_cost + installation_cost + uniet_solar_panel_cost * N_module
+financing_rate = 0.02  # Example financing rate (5%)
+financing_period = 20  # Example financing period (20 years)
 
 # importing corrected files (first run data_configuration to correct the files)
+start_time = time.time()
 power_output = pd.read_pickle('data/Corrected_power_output.pkl')
 load_profile = pd.read_pickle('data/Corrected_load_profile.pkl')
 belpex_data = pd.read_pickle('data/Corrected_belpex_data.pkl')
 data = pd.read_pickle('data/Corrected_data.pkl')
-
+'''
+# The excel files
+power_output_old  = pd.read_csv('data/Irradiance_data.csv', parse_dates=['DateTime'])
+load_profile_old = pd.read_csv('data/Load_profile_8.csv', parse_dates=['Datum_Startuur'])
+belpex_data_old = pd.read_csv('data/Belpex_2024.csv', delimiter=';', parse_dates=['Date'], encoding='ISO-8859-1', dayfirst=True)
+data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, WP_panel, N_module, tilt_module, azimuth_module)
+'''
+end_time = time.time()
+print(f"Data correction took {end_time - start_time:.2f} seconds")
 
 # Visualize the data
 #power_per_year(power_output, load_profile)
 #average_power(power_output, load_profile)
+#belpex_visualisation(belpex_data)
 
-
-
-# Cost in case of day/night tariff
-variable_data, totalcost_variable = day_night_electricity_cost(data, [0])
-print(f'total variabel cost: {totalcost_variable:.2f} eur')
-
-# Cost in case of dynamic tariff
-totalcost_dynamic = calculate_total_dynamic_cost(data, [0])
-print(f'total dynamic cost: {totalcost_dynamic:.2f} eur')
-
-
-'''
-# Load day and night
-load_day = load_profile[load_profile['Datum_Startuur'].apply(is_daytime)]
-load_night = load_profile[~load_profile['Datum_Startuur'].apply(is_daytime)]
-print('day load:', load_day['Volume_Afname_kWh'].sum(), 'kWh')
-print('night load:', load_night['Volume_Afname_kWh'].sum(), 'kWh')
-print(power_output.head())
-power_output_day = power_output[power_output['DateTime'].apply(is_daytime)]
-power_output_night = power_output[~power_output['DateTime'].apply(is_daytime)]
-print('Day power output:', power_output_day['Power_Output_kWh'].sum(), 'kWh')
-print('Night power output:', power_output_night['Power_Output_kWh'].sum(), 'kWh')
-
-# Plot the total cost per 15min
-plt.plot(load_profile['Datum_Startuur'], load_profile['total_cost_per_15min'])
-plt.xlabel('Date Time')
-plt.ylabel('Total Cost per 15min')
-plt.title('Total Cost per 15min Over Time')
-plt.xlim(pd.Timestamp('2022-01-01'), pd.Timestamp('2022-01-02'))
-plt.show()
-'''
 
 
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(data)
 
-
 # Ensure load_profile has 'Datum_Startuur' as a column
 #if 'Datum_Startuur' not in load_profile.columns:
 #    load_profile = load_profile.reset_index()  # Reset index to make 'Datum_Startuur' a column
 
-
 # Call charge_battery with the correct power_output and load_profile
-charge_schedule, data, end_of_day_charge_level = charge_battery(battery_capacity, data)
-#print('Charge schedule:', charge_schedule)
-# Convert charge_schedule dictionary to a DataFrame
+charge_schedule, data2, end_of_day_charge_level, battery = charge_battery(battery_capacity, data)
+#print("Charge schedule:")
+#print(charge_schedule)
+#discharge_schedule = discharge_battery(data, end_of_day_charge_level)
 
-discharge_schedule = discharge_battery(data, end_of_day_charge_level)
+print("Data with charge schedule:")
+print(battery.head())
+print(data2.head())
 
-# Remove timezone information from datetime columns
-if 'datetime' in data.columns:
-    data['datetime'] = data['datetime'].dt.tz_localize(None)
-if 'datum_startuur' in data.columns:
-    data['datum_startuur'] = data['datum_startuur'].dt.tz_localize(None)
+# FINANCIAL EVALUATION
+# Cost in case of day/night tariff and dynamic tariff
+variable_data, totalcost_variable = day_night_electricity_cost(data, [battery])
+totalcost_dynamic = calculate_total_dynamic_cost(data, [0])
+capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_dynamic = financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period)
+# !!!!!! investment_cost needs to be checked !!!!! (Staat in het begin van main)
 
-# Save the DataFrame to Excel
-data.to_excel('results/data.xlsx', index=False)
 
-"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
 # Filter the power_difference data for the first day of January
 first_day = power_difference[
     (power_difference['datetime'] >= pd.Timestamp('2024-01-01')) &
@@ -147,4 +140,4 @@ plt.tight_layout()
 # Save the plot as an image
 plt.savefig('results/power_output_and_load_profile_january_1st.png')
 plt.show()
-"""
+'''

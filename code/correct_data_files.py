@@ -6,14 +6,15 @@ from calculations_power import calculation_power_output
 def correct_belpex_data(belpex_data):
     belpex_data = belpex_data.copy()  # Avoid SettingWithCopyWarning
 
-    # Ensure the 'Date' column is in string format
-    belpex_data['Date'] = belpex_data['Date'].astype(str)
+    # Ensure the 'Euro' column is cleaned and formatted
+    belpex_data['Euro'] = belpex_data['Euro'].str.replace(r'[^\d.,-]', '', regex=True)
+    belpex_data['Euro'] = belpex_data['Euro'].str.replace(',', '.').astype(float)
 
     # Append '00:00' to rows where only the date is present (no time)
-    belpex_data['Date'] = belpex_data['Date'].apply(lambda x: x if ':' in x else f"{x} 00:00")
+    belpex_data['Date'] = belpex_data['Date'].apply(lambda x: x if ':' in str(x) else f"{x} 00:00")
 
-    # Convert the 'Date' column to datetime format
-    belpex_data['datetime'] = pd.to_datetime(belpex_data['Date'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+    # Convert the 'Date' column to datetime format (if not already)
+    belpex_data['datetime'] = pd.to_datetime(belpex_data['Date'], format='%d/%m/%Y %H:%M:%S', errors='coerce')
 
     # Drop rows with invalid datetime values (NaT)
     belpex_data = belpex_data.dropna(subset=['datetime']).copy()
@@ -21,15 +22,11 @@ def correct_belpex_data(belpex_data):
     # Drop rows where the date is February 29
     belpex_data = belpex_data[~((belpex_data['datetime'].dt.month == 2) & (belpex_data['datetime'].dt.day == 29))]
 
-    # Convert the 'Euro' column to numeric and drop invalid rows
-    belpex_data['Euro'] = pd.to_numeric(belpex_data['Euro'], errors='coerce')
-    belpex_data = belpex_data.dropna(subset=['Euro']).copy()
-
     # Drop duplicate datetime values by aggregating numeric columns
     numeric_columns = belpex_data.select_dtypes(include='number').columns
     belpex_data = belpex_data.groupby('datetime', as_index=False)[numeric_columns].mean()
 
-    # Resample to 15-minute intervals
+    # Resample to 15-minute intervals using 'datetime' as the index
     belpex_data = belpex_data.set_index('datetime').resample('15min').ffill().reset_index()
 
     # Change the year of belpex_data to 2000
@@ -128,12 +125,18 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
     power_output = pd.DataFrame()
 
     power_output = calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data)
-
+    
+    # Set the 'DateTime' column as the index
+    power_output = power_output.set_index('DateTime', drop=False)
+    
     # Resample to 15-minute intervals
     power_output = power_output.set_index('DateTime').resample('15min').sum().reset_index()
 
-    # Change the year of load_profile to 2000
+    # Change the year of 'DateTime' to 2000
     power_output['DateTime'] = power_output['DateTime'].apply(lambda x: x.replace(year=2000))
+
+    # Drop rows with invalid datetime values (NaT) after year replacement
+    power_output = power_output.dropna(subset=['DateTime']).copy()
 
     # Identify zero power output periods
     power_output['is_zero'] = power_output['Power_Output_kWh'] == 0
@@ -143,11 +146,15 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
 
     # Identify groups where the zero period lasts more than 1 day (96 intervals for 15-minute data)
     zero_groups = power_output[power_output['is_zero']].groupby('group').size()
-    long_zero_groups = zero_groups[zero_groups > 96].index
+    long_zero_groups = zero_groups[zero_groups > 288].index
 
     # Handle long zero periods
     for group in long_zero_groups:
         period_power = power_output[power_output['group'] == group]
+
+        # Ensure period_power contains only full days with power == 0
+        full_days = period_power.groupby(period_power['DateTime'].dt.date).filter(lambda x: len(x) == 96)
+        period_power = period_power[period_power['DateTime'].dt.date.isin(full_days['DateTime'].dt.date)]
 
         # Get the start and end indices of the missing group
         start_idx = period_power.index.min()
@@ -159,10 +166,6 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
         # Create fake groups before and after the missing group
         before_period_power = power_output.loc[start_idx - group_length:start_idx - 1]
         after_period_power = power_output.loc[end_idx + 1:end_idx + group_length]
-
-        # Skip if fake groups are incomplete
-        if len(before_period_power) < group_length or len(after_period_power) < group_length:
-            continue
 
         # Calculate total power output for fake groups
         before_total = before_period_power['Power_Output_kWh'].sum()
@@ -178,13 +181,13 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
         power_output.loc[period_power.index, 'Power_Output_kWh'] = fill_data
 
     # Preserve single-day zero periods (do not change their values)
-    single_day_groups = zero_groups[zero_groups <= 96].index
+    single_day_groups = zero_groups[zero_groups <= 288].index
     for group in single_day_groups:
         power_output.loc[power_output['group'] == group, 'Power_Output_kWh'] = 0
 
     # Drop helper columns
     power_output = power_output.drop(columns=['is_zero', 'group'])
-
+    
     return power_output[["DateTime", "Power_Output_kWh"]]
 
 def all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, WP_panel, N_module, tilt_module, azimuth_module):
@@ -198,8 +201,8 @@ def all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, 
 
     # Make all the timestamps timezone-aware
     belpex_data["datetime"] = belpex_data["datetime"].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
-    power_output["DateTime"] = power_output["DateTime"].dt.tz_convert("Europe/Brussels")
-    load_profile["Datum_Startuur"] = load_profile["Datum_Startuur"].dt.tz_convert("Europe/Brussels")
+    #power_output["DateTime"] = power_output["DateTime"].dt.tz_convert("Europe/Brussels")
+    #load_profile["Datum_Startuur"] = load_profile["Datum_Startuur"].dt.tz_convert("Europe/Brussels")
 
     data = pd.DataFrame()
     data['datetime'] = power_output['DateTime']
