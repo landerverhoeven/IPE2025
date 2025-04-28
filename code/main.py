@@ -87,6 +87,16 @@ charge_schedule, data, end_of_day_charge_level = charge_battery(battery_capacity
 # Convert charge_schedule dictionary to a DataFrame
 
 discharge_schedule = discharge_battery(data, end_of_day_charge_level)
+
+# Remove timezone information from datetime columns
+if 'datetime' in data.columns:
+    data['datetime'] = data['datetime'].dt.tz_localize(None)
+if 'datum_startuur' in data.columns:
+    data['datum_startuur'] = data['datum_startuur'].dt.tz_localize(None)
+
+# Save the DataFrame to Excel
+data.to_excel('results/data.xlsx', index=False)
+
 """
 # Filter the power_difference data for the first day of January
 first_day = power_difference[
