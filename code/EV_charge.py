@@ -58,3 +58,14 @@ def charge_ev_daily(current_charge, max_charge, min_charge, power_diff, data):
         results.append(result)
 
     return results
+
+
+'''
+RESTRICTIONS: 
+- EV charging is allowed only during the night (from 6 PM to 8 AM) on weekdays and all day on weekends.
+- The EV battery must maintain a minimum charge level for emergency use. (e.g., 30% of the battery capacity).
+- The EV battery cannot exceed its maximum charge level (e.g., 100% of the battery capacity).
+- The charging rate is dynamic and depends on the available power difference between PV generation and load.
+- on weekends take away a certain amount from the battery to simulate driving, e.g., 20% of the battery capacity.
+
+'''
