@@ -56,7 +56,7 @@ print(f"Data correction took {end_time - start_time:.2f} seconds")
 power_difference = calculate_power_difference(data)
 
 #CONVENTIONAL CHARGE/DISCHARGE
-conventional_charge_schedule, conventional_discharge_schedule = conventional_battery(battery_capacity, data)
+conventional_charge_schedule, conventional_discharge_schedule, conventional_discharge_schedule = conventional_battery(battery_capacity, data)
 # Call charge_battery with the correct power_output and load_profile
 charge_schedule, data2, end_of_day_charge_level, battery = charge_battery(battery_capacity, data)
 #print("Charge schedule:")

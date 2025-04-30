@@ -72,4 +72,4 @@ def conventional_battery(battery_capacity, data):
         convention_charge_schedule_df.to_excel(writer, sheet_name='Charge Schedule', index=False)
         convention_discharge_schedule_df.to_excel(writer, sheet_name='Discharge Schedule', index=False)
         convention_charge_discharge_schedule_df.to_excel(writer, sheet_name='Charge Discharge Schedule', index=False)
-        return charge_schedule, discharge_schedule
+        return convention_charge_discharge_schedule_df, convention_charge_schedule_df, convention_discharge_schedule_df
