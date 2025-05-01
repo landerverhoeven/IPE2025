@@ -22,8 +22,8 @@ def day_night_electricity_cost(data, battery):
 
     # Initialize the cost columns
     # Calculate the difference between the load profile and the power output
-    data['electricity_needed'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] - battery['charge_power']).apply(lambda x: x if x > 0 else 0)
-    data['electricity_injected'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] - battery['charge_power']).apply(lambda x: -x if x < 0 else 0)
+    data['electricity_needed'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] + battery['charge_power']).apply(lambda x: x if x > 0 else 0)
+    data['electricity_injected'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] + battery['charge_power']).apply(lambda x: -x if x < 0 else 0)
 
     data['electricity_cost'] = 0
     data['network_costs_per_15min'] = 0

@@ -62,22 +62,25 @@ power_difference = calculate_power_difference(data)
 #CONVENTIONAL CHARGE/DISCHARGE
 conventional_charge_schedule, conventional_discharge_schedule, conventional_charge_discharge_schedule = conventional_battery(battery_capacity, data)
 # Call charge_battery with the correct power_output and load_profile
-charge_schedule, data2, end_of_day_charge_level, battery = charge_battery(battery_capacity, data)
-#print("Charge schedule:")
-#print(charge_schedule)
-#discharge_schedule = discharge_battery(data, end_of_day_charge_level)
+charge_schedule, data2, end_of_day_charge_level, battery_charge = charge_battery(battery_capacity, data)
+discharge_schedule = discharge_battery(data, end_of_day_charge_level)
 
-<<<<<<< HEAD
-# print what the data type of charge_schedule is
-print("Data type of charge_schedule:", type(charge_schedule))
-=======
-ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
->>>>>>> 915436b3309d91b6c8d097e0a18ade67c3e4dce0
+#print("discharge_schedule:")
+print(discharge_schedule)
 
 
+# ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
+
+'''''
+print("conventional_charge_discharge_schedule:")
+print(conventional_charge_discharge_schedule.head(50))
+
+print("smart_charge_schedule:")
+print(battery.head(50))
+'''
 # FINANCIAL EVALUATION
 # Cost in case of day/night tariff and dynamic tariff
-variable_data, totalcost_variable = day_night_electricity_cost(data, [battery])
+variable_data, totalcost_variable = day_night_electricity_cost(data, battery_charge)
 totalcost_dynamic = calculate_total_dynamic_cost(data, [0])
 capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_dynamic = financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period)
 # !!!!!! investment_cost needs to be checked !!!!! (Staat in het begin van main)
