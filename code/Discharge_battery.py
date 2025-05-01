@@ -15,15 +15,16 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
     Returns:
         DataFrame: DataFrame containing the discharge schedule.
     """
+
     # Initialize variables
     discharge_schedule = {}
-    data = data.copy()
 
     # Convert end_of_day_charge_levels to a dictionary for quick lookup
     end_of_day_charge_dict = {item['Day']: item['End of Day Charge Level (kWh)'] for item in end_of_day_charge_levels}
 
     # Get the first and last days of the year
-    all_days = sorted(data['datetime'].unique())
+    all_days = sorted(data['day'].unique())
+
     first_day = pd.Timestamp('2024-01-01').date()  # Explicitly set January 1st
     last_day = all_days[-1]
 
@@ -35,10 +36,12 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
     previous_day_charge = end_of_day_charge_dict.get(last_day, 0)
 
     grouped = data.groupby('day')
+
     charge_schedule_grouped = charge_schedule.groupby(charge_schedule['datetime'].dt.date)
 
     # Iterate through each day in the data
     for day in all_days:
+
         # Use the previous day's charge level as the starting charge
         current_charge = previous_day_charge
 
@@ -49,7 +52,6 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
         else:
             # If no data exists for the day, create an empty DataFrame
             sorted_group = pd.DataFrame(columns=['datetime', 'Volume_Afname_kWh', 'Euro'])
-            print(f"No data available for {day}.")
 
         discharge_hours = []
         discharge_power = []
@@ -103,26 +105,57 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
             'power': discharge_power,
             'current_charge': charge_levels
         }
-    
+
         # Update the previous day's charge level for the next iteration
         previous_day_charge = end_of_day_charge_dict.get(day, 0)
 
     # Create a DataFrame for the discharge schedule, including discharge power and charge level
     discharge_schedule_df = pd.DataFrame([
         {
-            'datetime': 0,
             'Day': day,
             'Hour': hour,
-            'Minute': 0,
-            'Disharge Power (kWh)': discharge_schedule[day]['power'][i],
-            'Discharge Level (kWh)': discharge_schedule[day]['current_charge'][i]
+            'Discharge Power (kWh)': discharge_schedule[day]['power'][i],
+            'Charge Level (kWh)': discharge_schedule[day]['current_charge'][i]
         }
         for day in discharge_schedule
         for i, hour in enumerate(discharge_schedule[day]['hours'])
     ])
+    '''
+    print("dit is toch het bewijs")
+    print(discharge_schedule_df.head())
 
+    # Change charge_schedule_df to match the format of the original data
+    discharge_schedule_df['Minute'] = discharge_schedule_df.groupby(['Day', 'Hour']).cumcount() * 15
+    discharge_schedule_df['datetime'] = pd.to_datetime(
+        discharge_schedule_df['Day'].astype(str) + ' ' +
+        discharge_schedule_df['Hour'].astype(str) + ':' +
+        discharge_schedule_df['Minute'].astype(str).str.zfill(2) + ':00'
+    )
+    #charge_schedule_df.set_index('datetime', inplace=True)
+    discharge_schedule_df.drop(columns=['Day', 'Hour', 'Minute'], inplace=True)
+
+    # Save the charge_schedule DataFrame to an Excel file
+    discharge_schedule_df.to_excel('results/charge_schedule.xlsx', index=False)
+
+    # make sure datetime is in the same timezone as the original data
+    discharge_schedule_df['datetime'] = discharge_schedule_df['datetime'].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
+
+    # Merge data with charge_schedule_df to include the original data columns
+    merged_data = pd.merge(data, discharge_schedule_df, on='datetime', how='left', suffixes=('', '_charge'))
+    merged_data['Charge Power (kWh)'] = merged_data['Charge Power (kWh)'].fillna(0)
+    merged_data['Charge Level (kWh)'] = merged_data['Charge Level (kWh)'].fillna(0)
+    merged_data.drop(columns=['day', 'power_difference_kwh'], inplace=True)
+    
+
+    battery_discharge = pd.DataFrame()
+    battery_discharge['datetime'] = merged_data['datetime']
+    battery_discharge['charge_power'] = merged_data['Charge Power (kWh)']
+    battery_discharge['charge_level'] = merged_data['Charge Level (kWh)']
+
+    
+
+'''
     # Save the discharge schedule to an Excel file
     discharge_schedule_df.to_excel('results/discharge_schedule.xlsx', index=False)
-    
 
     return discharge_schedule_df

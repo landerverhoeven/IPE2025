@@ -217,9 +217,5 @@ def charge_battery(battery_capacity, data):
     ## Save the plot as an image
     #plt.savefig('results/charging_power_output_plot.png')
     #plt.show()
-<<<<<<< HEAD
     data = pd.DataFrame(data)
-    return charge_schedule_df, data, end_of_day_charge_levels, battery
-=======
-    return charge_schedule, data, end_of_day_charge_levels, battery_charge
->>>>>>> 3c4fdde70d018f79137bde81891bb075912830c2
+    return charge_schedule_df, data, end_of_day_charge_levels
