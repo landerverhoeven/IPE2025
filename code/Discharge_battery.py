@@ -2,13 +2,15 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-def discharge_battery(data, end_of_day_charge_levels):
+def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
     """
-    Discharge the battery based on the power difference and the end-of-day charge level.
+    Discharge the battery based on the power difference and the end-of-day charge level,
+    ensuring the battery is not discharged during hours when it is being charged.
 
     Parameters:
         data (DataFrame): DataFrame containing power difference data.
         end_of_day_charge_levels (list): List of dictionaries containing the end-of-day charge levels for each day.
+        charge_schedule (DataFrame): DataFrame containing the charging schedule.
 
     Returns:
         DataFrame: DataFrame containing the discharge schedule.
@@ -32,6 +34,8 @@ def discharge_battery(data, end_of_day_charge_levels):
     previous_day_charge = end_of_day_charge_dict.get(last_day, 0)
 
     grouped = data.groupby('day')
+    charge_schedule_grouped = charge_schedule.groupby(charge_schedule['datetime'].dt.date)
+
     # Iterate through each day in the data
     for day in all_days:
         # Use the previous day's charge level as the starting charge
@@ -48,10 +52,20 @@ def discharge_battery(data, end_of_day_charge_levels):
         discharge_hours = []
         discharge_power = []
 
+        # Get the charging schedule for the current day
+        if day in charge_schedule_grouped.groups:
+            charging_hours = charge_schedule_grouped.get_group(day)['datetime'].dt.hour.tolist()
+        else:
+            charging_hours = []
+
         # Iterate through the sorted hours
         for _, row in sorted_group.iterrows():
             hour = row['datetime'].hour
             power_difference1 = row['Volume_Afname_kWh']
+
+            # Skip discharging if the battery is being charged during this hour
+            if hour in charging_hours:
+                continue
 
             if current_charge > 0:
                 current_charge -= power_difference1  # Discharge the battery
@@ -106,5 +120,4 @@ def discharge_battery(data, end_of_day_charge_levels):
     # Save the discharge schedule to an Excel file
     discharge_schedule_df.to_excel('results/discharge_schedule.xlsx', index=False)
 
-
-    return discharge_schedule
+    return discharge_schedule_df

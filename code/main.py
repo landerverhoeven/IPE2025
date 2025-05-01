@@ -64,13 +64,10 @@ conventional_charge_schedule, conventional_discharge_schedule, conventional_char
 charge_schedule, data2, end_of_day_charge_level, battery = charge_battery(battery_capacity, data)
 #print("Charge schedule:")
 #print(charge_schedule)
-#discharge_schedule = discharge_battery(data, end_of_day_charge_level)
+discharge_schedule = discharge_battery(data2, end_of_day_charge_level, charge_schedule)
 
-ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
+#ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
 
-print("Data with charge schedule:")
-print(battery.head())
-print(data2.head())
 
 '''''
 # FINANCIAL EVALUATION
