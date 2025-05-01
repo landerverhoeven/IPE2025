@@ -121,7 +121,6 @@ def charge_battery(battery_capacity, data):
         for day in charge_schedule
         for i, hour in enumerate(charge_schedule[day]['hours'])
     ])
-    print(charge_schedule_df.head())
 
     # Change charge_schedule_df to match the format of the original data
     charge_schedule_df['Minute'] = charge_schedule_df.groupby(['Day', 'Hour']).cumcount() * 15
@@ -144,13 +143,12 @@ def charge_battery(battery_capacity, data):
     merged_data['Charge Power (kWh)'] = merged_data['Charge Power (kWh)'].fillna(0)
     merged_data['Charge Level (kWh)'] = merged_data['Charge Level (kWh)'].fillna(0)
     merged_data.drop(columns=['day', 'power_difference_kwh'], inplace=True)
-    print(merged_data.head())
-    print(merged_data.info())
+    
 
-    battery = pd.DataFrame()
-    battery['datetime'] = merged_data['datetime']
-    battery['charge_power'] = merged_data['Charge Power (kWh)']
-    battery['charge_level'] = merged_data['Charge Level (kWh)']
+    battery_charge = pd.DataFrame()
+    battery_charge['datetime'] = merged_data['datetime']
+    battery_charge['charge_power'] = merged_data['Charge Power (kWh)']
+    battery_charge['charge_level'] = merged_data['Charge Level (kWh)']
 
     # Create a DataFrame for the end-of-day charge levels
     end_of_day_charge_df = pd.DataFrame(end_of_day_charge_levels)
@@ -219,5 +217,9 @@ def charge_battery(battery_capacity, data):
     ## Save the plot as an image
     #plt.savefig('results/charging_power_output_plot.png')
     #plt.show()
+<<<<<<< HEAD
     data = pd.DataFrame(data)
     return charge_schedule_df, data, end_of_day_charge_levels, battery
+=======
+    return charge_schedule, data, end_of_day_charge_levels, battery_charge
+>>>>>>> 3c4fdde70d018f79137bde81891bb075912830c2

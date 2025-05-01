@@ -17,12 +17,13 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
     """
     # Initialize variables
     discharge_schedule = {}
+    data = data.copy()
 
     # Convert end_of_day_charge_levels to a dictionary for quick lookup
     end_of_day_charge_dict = {item['Day']: item['End of Day Charge Level (kWh)'] for item in end_of_day_charge_levels}
 
     # Get the first and last days of the year
-    all_days = sorted(data['day'].unique())
+    all_days = sorted(data['datetime'].unique())
     first_day = pd.Timestamp('2024-01-01').date()  # Explicitly set January 1st
     last_day = all_days[-1]
 
@@ -48,6 +49,7 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
         else:
             # If no data exists for the day, create an empty DataFrame
             sorted_group = pd.DataFrame(columns=['datetime', 'Volume_Afname_kWh', 'Euro'])
+            print(f"No data available for {day}.")
 
         discharge_hours = []
         discharge_power = []
@@ -101,17 +103,19 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
             'power': discharge_power,
             'current_charge': charge_levels
         }
-
+    
         # Update the previous day's charge level for the next iteration
         previous_day_charge = end_of_day_charge_dict.get(day, 0)
 
     # Create a DataFrame for the discharge schedule, including discharge power and charge level
     discharge_schedule_df = pd.DataFrame([
         {
+            'datetime': 0,
             'Day': day,
             'Hour': hour,
-            'Discharge Power (kWh)': discharge_schedule[day]['power'][i],
-            'Charge Level (kWh)': discharge_schedule[day]['current_charge'][i]
+            'Minute': 0,
+            'Disharge Power (kWh)': discharge_schedule[day]['power'][i],
+            'Discharge Level (kWh)': discharge_schedule[day]['current_charge'][i]
         }
         for day in discharge_schedule
         for i, hour in enumerate(discharge_schedule[day]['hours'])
@@ -119,5 +123,6 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
 
     # Save the discharge schedule to an Excel file
     discharge_schedule_df.to_excel('results/discharge_schedule.xlsx', index=False)
+    
 
     return discharge_schedule_df
