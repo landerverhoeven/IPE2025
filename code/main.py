@@ -13,6 +13,7 @@ from Charge_battery import charge_battery
 from Discharge_battery import discharge_battery
 from financial_evaluation import financial_evaluation
 from Conventional_charge_discharge import conventional_battery
+from EV_charge import charge_ev_weekly
 
 # Constants for PV system
 tilt_module = np.radians(30)  # Panel tilt angle (radians)
@@ -21,6 +22,9 @@ WP_panel = 350  # Panel power (W)
 N_module = 15  # Number of panels
 
 battery_capacity = 5  # Battery capacity (kWh)
+battery_capacity_ev = 65  # EV battery capacity (kWh)
+battery_capacity_ev_min = 0.2 * battery_capacity_ev  # Minimum charge level (20% of capacity)
+battery_capacity_ev_max = 0.8 * battery_capacity_ev  # Maximum charge level (80% of capacity)
 
 # Costs
 scissor_lift_cost = 170  # incl. vat
@@ -52,20 +56,23 @@ print(f"Data correction took {end_time - start_time:.2f} seconds")
 #belpex_visualisation(belpex_data)
 
 
-
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(data)
 
 #CONVENTIONAL CHARGE/DISCHARGE
-conventional_charge_schedule, conventional_discharge_schedule, conventional_discharge_schedule = conventional_battery(battery_capacity, data)
+conventional_charge_schedule, conventional_discharge_schedule, conventional_charge_discharge_schedule = conventional_battery(battery_capacity, data)
 # Call charge_battery with the correct power_output and load_profile
 charge_schedule, data2, end_of_day_charge_level, battery = charge_battery(battery_capacity, data)
 #print("Charge schedule:")
 #print(charge_schedule)
 #discharge_schedule = discharge_battery(data, end_of_day_charge_level)
 
+<<<<<<< HEAD
 # print what the data type of charge_schedule is
 print("Data type of charge_schedule:", type(charge_schedule))
+=======
+ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
+>>>>>>> 915436b3309d91b6c8d097e0a18ade67c3e4dce0
 
 
 # FINANCIAL EVALUATION
@@ -76,6 +83,8 @@ capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_
 # !!!!!! investment_cost needs to be checked !!!!! (Staat in het begin van main)
 
 
+data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
+data.to_excel('results/data.xlsx', index=False)
 
 
 
