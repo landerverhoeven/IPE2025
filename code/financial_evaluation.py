@@ -8,7 +8,7 @@
 import numpy as np
 from day_night_electricity_cost import day_night_electricity_cost
 from dynamic_electricity_cost import calculate_total_dynamic_cost
-#from tabulate import tabulate
+from tabulate import tabulate
 
 # CAPEX (Capital Expenditure) calculation
 def calculate_capex(investment_cost, financing_rate, financing_period):

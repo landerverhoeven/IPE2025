@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import tabulate
 from plot import average_power, power_per_year, belpex_visualisation
 from dynamic_electricity_cost import calculate_total_dynamic_cost
 from day_night_electricity_cost import day_night_electricity_cost
@@ -63,19 +64,17 @@ charge_schedule, data2, end_of_day_charge_level, battery = charge_battery(batter
 #print(charge_schedule)
 #discharge_schedule = discharge_battery(data, end_of_day_charge_level)
 
+# print what the data type of charge_schedule is
+print("Data type of charge_schedule:", type(charge_schedule))
 
-print("Data with charge schedule:")
-print(battery.head())
-print(data2.head())
 
-'''''
 # FINANCIAL EVALUATION
 # Cost in case of day/night tariff and dynamic tariff
 variable_data, totalcost_variable = day_night_electricity_cost(data, [battery])
 totalcost_dynamic = calculate_total_dynamic_cost(data, [0])
 capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_dynamic = financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period)
 # !!!!!! investment_cost needs to be checked !!!!! (Staat in het begin van main)
-'''
+
 
 
 

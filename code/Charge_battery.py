@@ -144,8 +144,7 @@ def charge_battery(battery_capacity, data):
     merged_data['Charge Power (kWh)'] = merged_data['Charge Power (kWh)'].fillna(0)
     merged_data['Charge Level (kWh)'] = merged_data['Charge Level (kWh)'].fillna(0)
     merged_data.drop(columns=['day', 'power_difference_kwh'], inplace=True)
-    print(merged_data.head())
-    print(merged_data.info())
+    
 
     battery = pd.DataFrame()
     battery['datetime'] = merged_data['datetime']
