@@ -61,15 +61,16 @@ power_difference = calculate_power_difference(data)
 
 #CONVENTIONAL CHARGE/DISCHARGE
 conventional_charge_schedule, conventional_discharge_schedule, conventional_charge_discharge_schedule = conventional_battery(battery_capacity, data)
+print("Conventional charge/discharge schedule: Done")
 # Call charge_battery with the correct power_output and load_profile
 charge_schedule, data2, end_of_day_charge_level = charge_battery(battery_capacity, data)
-#print("Charge schedule:")
+print("Smart charge schedule: Done")
 #print(charge_schedule)
-print(data2.columns)
 discharge_schedule = discharge_battery(data2, end_of_day_charge_level, charge_schedule)
+print("Smart discharge schedule: Done")
 
-#ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
-
+ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
+print("EV charge schedule: Done")
 
 '''''
 print("conventional_charge_discharge_schedule:")
