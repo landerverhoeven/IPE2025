@@ -70,7 +70,7 @@ print("Smart charge schedule: Done")
 discharge_schedule = discharge_battery(data2, end_of_day_charge_level, charge_schedule)
 print("Smart discharge schedule: Done")
 
-ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
+ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev, charge_schedule)
 print("EV charge schedule: Done")
 
 '''''
@@ -92,37 +92,85 @@ capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_
 data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
 # Filter the data for July 1st, 2024
 july_1st = data[
-    (data['datetime'] >= pd.Timestamp('2024-07-01')) &
-    (data['datetime'] < pd.Timestamp('2024-07-02'))
+    (data['datetime'] >= pd.Timestamp('2000-07-27')) &
+    (data['datetime'] < pd.Timestamp('2000-07-28'))
 ]
 
 
 # Verify the filtered data
 print("Filtered data for July 1st:")
-print(july_1st[['datetime', 'Power_Output_kWh', 'Volume_Afname_kWh', 'Euro']].head())
 
-# Plot the power output, load profile, electricity price, charge schedule, and discharge schedule
-plt.figure(figsize=(12, 6))
+# Plot the power output, load profile, and electricity price with a secondary y-axis
+fig, ax1 = plt.subplots(figsize=(12, 6))
 
-# Plot power output
-plt.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
+# Plot power output on the primary y-axis
+ax1.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
+ax1.plot(july_1st['datetime'], july_1st['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
+ax1.set_xlabel('Datetime')
+ax1.set_ylabel('Energy (kWh)', color='black')
+ax1.tick_params(axis='y', labelcolor='black')
+ax1.grid(True)
 
-# Plot load profile
-plt.plot(july_1st['datetime'], july_1st['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
+# Create a secondary y-axis for electricity price
+ax2 = ax1.twinx()
+ax2.plot(july_1st['datetime'], july_1st['Euro'], label='Electricity Price (€/MWh)', color='green')
+ax2.set_ylabel('Electricity Price (€/MWh)', color='green')
+ax2.tick_params(axis='y', labelcolor='green')
 
-# Plot electricity price
-plt.plot(july_1st['datetime'], july_1st['Euro'], label='Electricity Price (€/MWh)', color='green')
+# Add a title and legends
+fig.suptitle('Power Output, Load Profile, and Electricity Price on July 1st, 2024')
+ax1.legend(loc='upper left')
+ax2.legend(loc='upper right')
 
+# Adjust layout and save the plot
+fig.tight_layout()
+plt.savefig('results/power_output_load_profile_price_july_1st_secondary_yaxis.png')
+plt.show()
 
-# Add labels, title, and legend
-plt.xlabel('Datetime')
-plt.ylabel('Energy (kWh) / Price (€/MWh)')
-plt.title('Power Output, Load Profile, Electricity Price, Charge, and Discharge on July 1st, 2024')
-plt.grid(True)
-plt.legend()
-plt.tight_layout()
+charge_schedule['datetime'] = pd.to_datetime(charge_schedule['datetime']).dt.tz_localize(None)
+discharge_schedule['datetime'] = pd.to_datetime(discharge_schedule['datetime']).dt.tz_localize(None)
+# Filter the charge and discharge schedules for July 1st, 2024
+july_1st_charge_schedule = charge_schedule[
+    (charge_schedule['datetime'] >= pd.Timestamp('2000-07-01')) &
+    (charge_schedule['datetime'] < pd.Timestamp('2000-07-02'))
+]
 
-# Save the plot as an image
+july_1st_discharge_schedule = discharge_schedule[
+    (discharge_schedule['datetime'] >= pd.Timestamp('2000-07-01')) &
+    (discharge_schedule['datetime'] < pd.Timestamp('2000-07-02'))
+]
+
+# Plot the power output, load profile, electricity price, charge schedule, and discharge schedule with a secondary y-axis
+fig, ax1 = plt.subplots(figsize=(12, 6))
+
+# Plot power output on the primary y-axis
+ax1.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
+ax1.plot(july_1st['datetime'], july_1st['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
+
+# Plot charge schedule
+ax1.plot(july_1st_charge_schedule['datetime'], july_1st_charge_schedule['charging_power'], label='Charge Schedule (kWh)', color='purple')
+
+# Plot discharge schedule
+ax1.plot(july_1st_discharge_schedule['datetime'], july_1st_discharge_schedule['discharging_power'], label='Discharge Schedule (kWh)', color='orange')
+
+ax1.set_xlabel('Datetime')
+ax1.set_ylabel('Energy (kWh)', color='black')
+ax1.tick_params(axis='y', labelcolor='black')
+ax1.grid(True)
+
+# Create a secondary y-axis for electricity price
+ax2 = ax1.twinx()
+ax2.plot(july_1st['datetime'], july_1st['Euro'], label='Electricity Price (€/MWh)', color='green')
+ax2.set_ylabel('Electricity Price (€/MWh)', color='green')
+ax2.tick_params(axis='y', labelcolor='green')
+
+# Add a title and legends
+fig.suptitle('Power Output, Load Profile, Electricity Price, Charge, and Discharge on July 1st, 2024')
+ax1.legend(loc='upper left')
+ax2.legend(loc='upper right')
+
+# Adjust layout and save the plot
+fig.tight_layout()
 plt.savefig('results/power_output_load_profile_price_charge_discharge_july_1st.png')
 plt.show()
 

@@ -1,15 +1,17 @@
 from datetime import datetime, time, timedelta
 import pandas as pd
 
-def charge_ev_weekly(data, battery_capacity, max_charge_percent=100, max_charge_rate=2.3, drive_discharge=8):
+def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge_percent=100, max_charge_rate=2.3, drive_discharge=8):
     """
     Models an EV battery charging process for all weeks in the dataset.
     The battery discharges during daily driving (8 kWh between 8 AM and 6 PM) and charges
-    during the cheapest possible time between 6 PM and 8 AM on weekdays and the entire day on weekends.
+    during the cheapest possible time between 6 PM and 8 AM on weekdays and the entire day on weekends,
+    excluding hours when the battery is charging.
 
     Args:
         data (pd.DataFrame): DataFrame containing 'datetime', 'price', and 'power_surplus' for each time interval.
         battery_capacity (float): Maximum capacity of the battery (kWh).
+        charge_battery_schedule (pd.DataFrame): DataFrame containing the battery charge schedule with 'datetime' column.
         max_charge_percent (float): Maximum charge level as a percentage of battery capacity.
         max_charge_rate (float): Maximum charging rate in kW.
         drive_discharge (float): Daily discharge in kWh.
@@ -23,6 +25,9 @@ def charge_ev_weekly(data, battery_capacity, max_charge_percent=100, max_charge_
 
     # Sort data by datetime for the discharging simulation
     data = data.sort_values(by='datetime')  # Ensure data is sorted by datetime
+
+    # Exclude overlapping hours from the EV charging schedule
+    charge_battery_hours = charge_battery_schedule['datetime']
 
     # Initialize the starting charge level
     current_charge = max_charge
@@ -57,8 +62,8 @@ def charge_ev_weekly(data, battery_capacity, max_charge_percent=100, max_charge_
             "price": entry['Euro'],
             "power_surplus": entry['power_difference_kwh'],
             "charging_power": 0,  # No charging during this iteration
-            "discharge_charge": current_charge  # Preserve the charge after discharging            
-            })
+            "discharge_charge": current_charge  # Preserve the charge after discharging
+        })
 
     # Convert the results list to a DataFrame for charging simulation
     results_df = pd.DataFrame(results)
@@ -73,6 +78,10 @@ def charge_ev_weekly(data, battery_capacity, max_charge_percent=100, max_charge_
         weekday = dt.weekday()
         is_weekend = weekday >= 5  # Saturday and Sunday are weekends
 
+        # Skip hours where the battery is charging
+        if dt in charge_battery_hours.values:
+            continue
+
         # Charging allowed: 6 PM to 8 AM on weekdays or the entire day on weekends
         if (is_weekend or dt.time() >= time(18, 0) or dt.time() <= time(8, 0)):
             charge_needed = max_charge - results_df.loc[row.name, 'discharge_charge']
@@ -82,7 +91,6 @@ def charge_ev_weekly(data, battery_capacity, max_charge_percent=100, max_charge_
 
         # Update the charging power in the results DataFrame
         results_df.loc[row.name, 'charging_power'] = charging_power
-
 
     # Recalculate updated_charge in chronological order
     results_df = results_df.sort_values(by='datetime')  # Return to chronological order
@@ -109,6 +117,52 @@ def charge_ev_weekly(data, battery_capacity, max_charge_percent=100, max_charge_
 
         # Update the updated_charge in the DataFrame
         results_df.loc[i, 'updated_charge'] = updated_charge
+    '''
+    # Third iteration: Simulate grid charging for each week
+    results_df['week'] = results_df['datetime'].dt.isocalendar().week  # Add a column for the week number
+    results_df['day'] = results_df['datetime'].dt.date  # Add a column for the day
+
+    for week, week_data in results_df.groupby('week'):
+        # Calculate the total discharge for the week (8 kWh per day)
+        num_days_in_week = week_data['day'].nunique()  # Count unique days in the week
+        total_discharge = 8 * num_days_in_week  # Total discharge for the week
+
+        # Calculate the total charging power for the week
+        total_charging_power = week_data['charging_power'].sum() + week_data['grid_charging_power'].sum()
+
+        # Calculate the grid charge needed for the week
+        grid_charge_needed = total_discharge - total_charging_power
+
+        # Sort the week data by price for grid charging
+        week_data = week_data.sort_values(by='price')
+
+        for i, row in week_data.iterrows():
+            dt = row['datetime']
+            price = row['price']
+            charging_power = row['charging_power']
+            grid_charging_power = 0
+            weekday = dt.weekday()
+            is_weekend = weekday >= 5  # Saturday and Sunday are weekends
+
+            # Charging allowed: 6 PM to 8 AM on weekdays or the entire day on weekends
+            if grid_charge_needed > 0 and (is_weekend or dt.time() >= time(18, 0) or dt.time() <= time(8, 0)):
+                                    # Determine the maximum grid charging power allowed
+                    max_grid_charging_power = max_charge_per_interval - charging_power
+                    grid_charging_power = min(grid_charge_needed, max_grid_charging_power)
+                    grid_charging_power = max(0, grid_charging_power)  # Ensure it does not go below 0
+
+                    # Update grid_charge_needed and grid_charging_power
+                    grid_charge_needed -= grid_charging_power
+                    results_df.loc[row.name, 'grid_charging_power'] = grid_charging_power
+
+        # Verify that the total grid charging power matches the weekly difference
+        total_grid_charging_power = week_data['grid_charging_power'].sum()
+        if not abs(total_grid_charging_power - (total_discharge - total_charging_power)) < 1e-6:
+            print(f"Warning: Grid charging power mismatch in week {week}.")
+
+    # Update cumulative charging power to include grid charging
+    results_df['cumulative_charging_power'] = results_df['charging_power'] + results_df['grid_charging_power']
+    '''
     '''
     # Third iteration: Simulate grid charging for each week
     results_df['week'] = results_df['datetime'].dt.isocalendar().week  # Add a column for the week number
