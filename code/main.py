@@ -42,6 +42,7 @@ belpex_data = pd.read_pickle('data/Corrected_belpex_data.pkl')
 data = pd.read_pickle('data/Corrected_data.pkl')
 '''
 # The excel files
+start_time = time.time()
 power_output_old  = pd.read_csv('data/Irradiance_data.csv', parse_dates=['DateTime'])
 load_profile_old = pd.read_csv('data/Load_profile_8.csv', parse_dates=['Datum_Startuur'])
 belpex_data_old = pd.read_csv('data/Belpex_2024.csv', delimiter=';', parse_dates=['Date'], encoding='ISO-8859-1', dayfirst=True)
@@ -55,7 +56,7 @@ print(f"Data correction took {end_time - start_time:.2f} seconds")
 #average_power(power_output, load_profile)
 #belpex_visualisation(belpex_data)
 
-
+print(data.head(10))
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(data)
 
