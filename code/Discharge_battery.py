@@ -105,57 +105,74 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
             'power': discharge_power,
             'current_charge': charge_levels
         }
-
+    
         # Update the previous day's charge level for the next iteration
         previous_day_charge = end_of_day_charge_dict.get(day, 0)
+
+    print("Discharge schedule:")
+    print(discharge_schedule)
 
     # Create a DataFrame for the discharge schedule, including discharge power and charge level
     discharge_schedule_df = pd.DataFrame([
         {
+            'datetime': 0,
             'Day': day,
             'Hour': hour,
+            'Minute': 0,
             'Discharge Power (kWh)': discharge_schedule[day]['power'][i],
             'Charge Level (kWh)': discharge_schedule[day]['current_charge'][i]
         }
         for day in discharge_schedule
         for i, hour in enumerate(discharge_schedule[day]['hours'])
     ])
-    '''
-    print("dit is toch het bewijs")
+    
     print(discharge_schedule_df.head())
 
-    # Change charge_schedule_df to match the format of the original data
+
+    # Adjust the format of the discharge_schedule_df to match the original data
     discharge_schedule_df['Minute'] = discharge_schedule_df.groupby(['Day', 'Hour']).cumcount() * 15
+
+    # Handle potential issues with daylight saving time and invalid minute values
+    discharge_schedule_df['Minute'] = discharge_schedule_df['Minute'].apply(lambda x: {
+        60: 0,
+        75: 15,
+        90: 30,
+        105: 45
+    }.get(x, x))  # Replace invalid values with the correct ones or keep the original value
+
+    # Warn if unexpected minute values are found
+    if (discharge_schedule_df['Minute'] > 45).any():
+        print("Warning: Minute value is not in the expected range.")
+
+    # Create the 'datetime' column
     discharge_schedule_df['datetime'] = pd.to_datetime(
         discharge_schedule_df['Day'].astype(str) + ' ' +
         discharge_schedule_df['Hour'].astype(str) + ':' +
         discharge_schedule_df['Minute'].astype(str).str.zfill(2) + ':00'
     )
-    #charge_schedule_df.set_index('datetime', inplace=True)
+
+    # Drop unnecessary columns
     discharge_schedule_df.drop(columns=['Day', 'Hour', 'Minute'], inplace=True)
 
-    # Save the charge_schedule DataFrame to an Excel file
-    discharge_schedule_df.to_excel('results/charge_schedule.xlsx', index=False)
-
-    # make sure datetime is in the same timezone as the original data
-    discharge_schedule_df['datetime'] = discharge_schedule_df['datetime'].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
-
-    # Merge data with charge_schedule_df to include the original data columns
-    merged_data = pd.merge(data, discharge_schedule_df, on='datetime', how='left', suffixes=('', '_charge'))
-    merged_data['Charge Power (kWh)'] = merged_data['Charge Power (kWh)'].fillna(0)
-    merged_data['Charge Level (kWh)'] = merged_data['Charge Level (kWh)'].fillna(0)
-    merged_data.drop(columns=['day', 'power_difference_kwh'], inplace=True)
-    
-
-    battery_discharge = pd.DataFrame()
-    battery_discharge['datetime'] = merged_data['datetime']
-    battery_discharge['charge_power'] = merged_data['Charge Power (kWh)']
-    battery_discharge['charge_level'] = merged_data['Charge Level (kWh)']
-
-    
-
-'''
     # Save the discharge schedule to an Excel file
     discharge_schedule_df.to_excel('results/discharge_schedule.xlsx', index=False)
 
-    return discharge_schedule_df
+    # Ensure 'datetime' is in the same timezone as the original data
+    discharge_schedule_df['datetime'] = discharge_schedule_df['datetime'].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
+
+    # Merge the discharge schedule with the original data
+    merged_data = pd.merge(data, discharge_schedule_df, on='datetime', how='left', suffixes=('', '_charge'))
+
+    # Fill missing values for discharge power and charge level
+    merged_data['Discharge Power (kWh)'] = merged_data['Discharge Power (kWh)'].fillna(0)
+    merged_data['Charge Level (kWh)'] = merged_data['Charge Level (kWh)'].fillna(0)
+
+    # Drop unnecessary columns
+    merged_data.drop(columns=['day', 'power_difference_kwh'], inplace=True)
+
+    # Create the battery_discharge DataFrame
+    battery_discharge = merged_data[['datetime', 'Discharge Power (kWh)', 'Charge Level (kWh)']].rename(
+        columns={'Discharge Power (kWh)': 'discharge_power', 'Charge Level (kWh)': 'charge_level'}
+    )
+
+    return battery_discharge

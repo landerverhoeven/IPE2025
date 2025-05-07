@@ -218,4 +218,32 @@ def charge_battery(battery_capacity, data):
     #plt.savefig('results/charging_power_output_plot.png')
     #plt.show()
     data = pd.DataFrame(data)
-    return charge_schedule_df, data, end_of_day_charge_levels
+    return charge_schedule_df, data, end_of_day_charge_levels, battery_charge
+
+
+
+def smart_battery_merge(battery_charge, discharge_schedule):
+        # Update 'charge_power' in smart_battery based on discharge_schedule
+    smart_battery = pd.DataFrame
+    if not discharge_schedule.empty:
+        smart_battery = pd.merge(
+            battery_charge[['datetime', 'charge_power']],
+            discharge_schedule[['datetime', 'discharge_power']],
+            on='datetime',
+            how='left'
+        )
+        # If discharge_power is not NaN, set charge_power to -1 * discharge_power
+        smart_battery['charge_power'] = smart_battery.apply(
+            lambda row: -1 * row['discharge_power'] if row['discharge_power'] != 0 else row['charge_power'],
+            axis=1
+        )
+        # Drop the 'discharge_power' column as it's no longer needed
+        smart_battery.drop(columns=['discharge_power'], inplace=True)
+
+    # Debug: Print the updated DataFrame
+    #print(smart_battery.head())
+
+
+    smart_battery['datetime'] = pd.to_datetime(smart_battery['datetime']).dt.tz_localize(None)
+    smart_battery.to_excel('results/smart_battery_schedule.xlsx', index=False)
+    return smart_battery
