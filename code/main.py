@@ -56,7 +56,6 @@ print(f"Data correction took {end_time - start_time:.2f} seconds")
 #average_power(power_output, load_profile)
 #belpex_visualisation(belpex_data)
 
-print(data.head(10))
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(data)
 
