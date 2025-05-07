@@ -209,6 +209,17 @@ def all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, 
     data['Power_Output_kWh'] = power_output['Power_Output_kWh']
     data['Volume_Afname_kWh'] = load_profile['Volume_Afname_kWh']
     data['Euro'] = belpex_data['Euro']
-    
+    data = change_order_dates(data)
 
     return data, power_output, load_profile, belpex_data
+
+def change_order_dates(data):
+    # Shift 'Euro' column: move the last day's values to the beginning
+    last_day_euro = data['Euro'][-96:].values  # Assuming 15-minute intervals (96 per day)
+    data['Euro'] = pd.concat([pd.Series(last_day_euro), data['Euro'][:-96].reset_index(drop=True)]).reset_index(drop=True)
+
+    # Shift 'Volume_Afname_kWh' column: move the first two days' values to the end
+    first_two_days_volume = data['Volume_Afname_kWh'][:192].values  # Assuming 15-minute intervals (192 for two days)
+    data['Volume_Afname_kWh'] = pd.concat([data['Volume_Afname_kWh'][192:].reset_index(drop=True), pd.Series(first_two_days_volume)]).reset_index(drop=True)
+
+    return data
