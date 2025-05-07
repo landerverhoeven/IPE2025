@@ -1,7 +1,12 @@
 from datetime import datetime, time, timedelta
 import pandas as pd
 
+<<<<<<< HEAD
 def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge_percent=100, max_charge_rate=2.3, drive_discharge=8):
+=======
+def charge_ev_weekly(data, battery_capacity, max_charge_percent=100, max_charge_rate=2.3, drive_discharge=8):
+    data = data.copy()  # Create a copy of the input DataFrame to avoid modifying the original
+>>>>>>> b970dfd6afdf871ec8c84cf8e2e201cf7fb414db
     """
     Models an EV battery charging process for all weeks in the dataset.
     The battery discharges during daily driving (8 kWh between 8 AM and 6 PM) and charges
@@ -61,9 +66,15 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
             "datetime": dt,
             "price": entry['Euro'],
             "power_surplus": entry['power_difference_kwh'],
+<<<<<<< HEAD
             "charging_power": 0,  # No charging during this iteration
             "discharge_charge": current_charge  # Preserve the charge after discharging
         })
+=======
+            "charge_power": 0,  # No charging during this iteration
+            "discharge_charge": current_charge  # Preserve the charge after discharging            
+            })
+>>>>>>> b970dfd6afdf871ec8c84cf8e2e201cf7fb414db
 
     # Convert the results list to a DataFrame for charging simulation
     results_df = pd.DataFrame(results)
@@ -74,7 +85,7 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
         dt = row['datetime']
         price = row['price']
         power_surplus = row['power_surplus']
-        charging_power = 0
+        charge_power = 0
         weekday = dt.weekday()
         is_weekend = weekday >= 5  # Saturday and Sunday are weekends
 
@@ -87,10 +98,10 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
             charge_needed = max_charge - results_df.loc[row.name, 'discharge_charge']
             if power_surplus > 0:
                 # Use power surplus to charge as much as possible, limited by max charge rate per interval
-                charging_power = min(charge_needed, power_surplus, max_charge_per_interval)
+                charge_power = min(charge_needed, power_surplus, max_charge_per_interval)
 
         # Update the charging power in the results DataFrame
-        results_df.loc[row.name, 'charging_power'] = charging_power
+        results_df.loc[row.name, 'charge_power'] = charge_power
 
     # Recalculate updated_charge in chronological order
     results_df = results_df.sort_values(by='datetime')  # Return to chronological order
@@ -101,19 +112,19 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
         # Reset cumulative charging power at the start of a new week
         if current_week != dt.isocalendar()[1]:  # Check if the week number has changed
             current_week = dt.isocalendar()[1]
-            cumulative_charging_power = 0  # Reset cumulative charging power
+            cumulative_charge_power = 0  # Reset cumulative charging power
 
         # Calculate updated_charge as discharge_charge + cumulative charging power
-        cumulative_charging_power += row['charging_power']
-        updated_charge = row['discharge_charge'] + cumulative_charging_power
+        cumulative_charge_power += row['charge_power']
+        updated_charge = row['discharge_charge'] + cumulative_charge_power
 
-        # If updated_charge exceeds max_charge, adjust the charging_power in the current row
+        # If updated_charge exceeds max_charge, adjust the charge_power in the current row
         if updated_charge > max_charge:
             excess = updated_charge - max_charge
-            # Ensure charging_power does not go below 0
-            adjusted_charging_power = max(0, row['charging_power'] - excess)
-            results_df.loc[i, 'charging_power'] = adjusted_charging_power
-            updated_charge = row['discharge_charge'] + cumulative_charging_power - (row['charging_power'] - adjusted_charging_power)
+            # Ensure charge_power does not go below 0
+            adjusted_charge_power = max(0, row['charge_power'] - excess)
+            results_df.loc[i, 'charge_power'] = adjusted_charge_power
+            updated_charge = row['discharge_charge'] + cumulative_charge_power - (row['charge_power'] - adjusted_charge_power)
 
         # Update the updated_charge in the DataFrame
         results_df.loc[i, 'updated_charge'] = updated_charge
@@ -128,10 +139,10 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
         total_discharge = 8 * num_days_in_week  # Total discharge for the week
 
         # Calculate the total charging power for the week
-        total_charging_power = week_data['charging_power'].sum() + week_data['grid_charging_power'].sum()
+        total_charge_power = week_data['charge_power'].sum() + week_data['grid_charge_power'].sum()
 
         # Calculate the grid charge needed for the week
-        grid_charge_needed = total_discharge - total_charging_power
+        grid_charge_needed = total_discharge - total_charge_power
 
         # Sort the week data by price for grid charging
         week_data = week_data.sort_values(by='price')
@@ -139,29 +150,29 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
         for i, row in week_data.iterrows():
             dt = row['datetime']
             price = row['price']
-            charging_power = row['charging_power']
-            grid_charging_power = 0
+            charge_power = row['charge_power']
+            grid_charge_power = 0
             weekday = dt.weekday()
             is_weekend = weekday >= 5  # Saturday and Sunday are weekends
 
             # Charging allowed: 6 PM to 8 AM on weekdays or the entire day on weekends
             if grid_charge_needed > 0 and (is_weekend or dt.time() >= time(18, 0) or dt.time() <= time(8, 0)):
                                     # Determine the maximum grid charging power allowed
-                    max_grid_charging_power = max_charge_per_interval - charging_power
-                    grid_charging_power = min(grid_charge_needed, max_grid_charging_power)
-                    grid_charging_power = max(0, grid_charging_power)  # Ensure it does not go below 0
+                    max_grid_charge_power = max_charge_per_interval - charge_power
+                    grid_charge_power = min(grid_charge_needed, max_grid_charge_power)
+                    grid_charge_power = max(0, grid_charge_power)  # Ensure it does not go below 0
 
-                    # Update grid_charge_needed and grid_charging_power
-                    grid_charge_needed -= grid_charging_power
-                    results_df.loc[row.name, 'grid_charging_power'] = grid_charging_power
+                    # Update grid_charge_needed and grid_charge_power
+                    grid_charge_needed -= grid_charge_power
+                    results_df.loc[row.name, 'grid_charge_power'] = grid_charge_power
 
         # Verify that the total grid charging power matches the weekly difference
-        total_grid_charging_power = week_data['grid_charging_power'].sum()
-        if not abs(total_grid_charging_power - (total_discharge - total_charging_power)) < 1e-6:
+        total_grid_charge_power = week_data['grid_charge_power'].sum()
+        if not abs(total_grid_charge_power - (total_discharge - total_charge_power)) < 1e-6:
             print(f"Warning: Grid charging power mismatch in week {week}.")
 
     # Update cumulative charging power to include grid charging
-    results_df['cumulative_charging_power'] = results_df['charging_power'] + results_df['grid_charging_power']
+    results_df['cumulative_charge_power'] = results_df['charge_power'] + results_df['grid_charge_power']
     '''
     '''
     # Third iteration: Simulate grid charging for each week

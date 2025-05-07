@@ -4,6 +4,11 @@ import pandas as pd
 
 def calculate_total_dynamic_cost(data, battery):
     data = data.copy()
+    # check if battery is dataframe or not
+    if isinstance(battery, pd.DataFrame):
+        battery = battery.copy()
+    else:
+        battery = pd.DataFrame({'charge_power': [0] * len(data)})
 
     """
     Calculate the total yearly electricity cost, including dynamic and fixed costs.
@@ -13,7 +18,7 @@ def calculate_total_dynamic_cost(data, battery):
     vat_tarrif = 1.06  # VAT tariff
 
     # Calculate the difference between the load profile and the power output
-    data['electricity_needed'] = data['Volume_Afname_kWh'] - data['Power_Output_kWh'] - battery
+    data['electricity_needed'] = data['Volume_Afname_kWh'] - data['Power_Output_kWh'] + battery['charge_power'] 
     
     # Update the condition to handle element-wise comparison
     data['effective_electricity_needed'] = data['electricity_needed'].apply(lambda x: x if x > 0 else 0)

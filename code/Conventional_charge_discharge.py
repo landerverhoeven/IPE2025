@@ -1,6 +1,7 @@
 import pandas as pd
 
 def conventional_battery(battery_capacity, data):
+    data = data.copy()  # Create a copy of the input DataFrame to avoid modifying the original
     """
     Simulates the charging and discharging of a battery based on power surplus and deficit.
 

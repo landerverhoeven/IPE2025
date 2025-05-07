@@ -29,6 +29,7 @@ def average_power(power_output, load_profile):
     average_power_output.index = [t.hour * 60 + t.minute for t in average_power_output.index]
     average_load.index = [t.hour * 60 + t.minute for t in average_load.index]
     
+    print(f"Total average power output: {average_power_output.sum():.2f} kWh")
     # Plot average power output and load for every 15 minutes
     plt.figure(figsize=(14, 8))
     plt.plot(average_power_output.index, average_power_output.values, marker='none', linestyle='-', color='b', label='Average Power Output')

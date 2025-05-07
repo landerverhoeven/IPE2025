@@ -9,17 +9,17 @@ from dynamic_electricity_cost import calculate_total_dynamic_cost
 from day_night_electricity_cost import day_night_electricity_cost
 from correct_data_files import all_correct_data_files
 from battery1 import calculate_power_difference, calculate_average_daily_power_difference
-from Charge_battery import charge_battery
+from Charge_battery import charge_battery, smart_battery_merge
 from Discharge_battery import discharge_battery
 from financial_evaluation import financial_evaluation
 from Conventional_charge_discharge import conventional_battery
 from EV_charge import charge_ev_weekly
 
 # Constants for PV system
-tilt_module = np.radians(30)  # Panel tilt angle (radians)
-azimuth_module = np.radians(90)  # Panel azimuth angle (radians)
-WP_panel = 350  # Panel power (W)
-N_module = 15  # Number of panels
+tilt_module = np.radians(5)  # Panel tilt angle (radians)
+azimuth_module = np.radians(180)  # Panel azimuth angle (radians)
+WP_panel = 445  # Panel power (W)
+N_module = 24  # Number of panels
 
 battery_capacity = 5  # Battery capacity (kWh)
 battery_capacity_ev = 65  # EV battery capacity (kWh)
@@ -40,6 +40,7 @@ power_output = pd.read_pickle('data/Corrected_power_output.pkl')
 load_profile = pd.read_pickle('data/Corrected_load_profile.pkl')
 belpex_data = pd.read_pickle('data/Corrected_belpex_data.pkl')
 data = pd.read_pickle('data/Corrected_data.pkl')
+
 '''
 # The excel files
 start_time = time.time()
@@ -56,21 +57,24 @@ print(f"Data correction took {end_time - start_time:.2f} seconds")
 #average_power(power_output, load_profile)
 #belpex_visualisation(belpex_data)
 
-print(data.head(10))
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(data)
+data[['datetime', 'power_difference_kwh', 'power_difference_kwh_for_conventional']] = calculate_power_difference(data)
 
 #CONVENTIONAL CHARGE/DISCHARGE
 conventional_charge_schedule, conventional_discharge_schedule, conventional_charge_discharge_schedule = conventional_battery(battery_capacity, data)
 print("Conventional charge/discharge schedule: Done")
 # Call charge_battery with the correct power_output and load_profile
-charge_schedule, data2, end_of_day_charge_level = charge_battery(battery_capacity, data)
+charge_schedule, data2, end_of_day_charge_level, battery_charge = charge_battery(battery_capacity, data)
 print("Smart charge schedule: Done")
 #print(charge_schedule)
 discharge_schedule = discharge_battery(data2, end_of_day_charge_level, charge_schedule)
 print("Smart discharge schedule: Done")
 
 ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev, charge_schedule)
+smart_battery = smart_battery_merge(battery_charge, discharge_schedule)
+print("Smart battery: Done")
+ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
 print("EV charge schedule: Done")
 
 '''''
@@ -80,67 +84,24 @@ print(conventional_charge_discharge_schedule.head(50))
 print("smart_charge_schedule:")
 print(battery.head(50))
 '''
-'''
+
 # FINANCIAL EVALUATION
 # Cost in case of day/night tariff and dynamic tariff
-variable_data, totalcost_variable = day_night_electricity_cost(data, battery_charge)
-totalcost_dynamic = calculate_total_dynamic_cost(data, [0])
+variable_data, totalcost_variable = day_night_electricity_cost(data, ev_charge_schedule)
+totalcost_dynamic = calculate_total_dynamic_cost(data, ev_charge_schedule)
 capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_dynamic = financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period)
 # !!!!!! investment_cost needs to be checked !!!!! (Staat in het begin van main)
-'''
+
 
 data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
-# Filter the data for July 1st, 2024
+
+# Filter the data for July 1st
 july_1st = data[
     (data['datetime'] >= pd.Timestamp('2000-07-27')) &
     (data['datetime'] < pd.Timestamp('2000-07-28'))
 ]
 
-
-# Verify the filtered data
-print("Filtered data for July 1st:")
-
-# Plot the power output, load profile, and electricity price with a secondary y-axis
-fig, ax1 = plt.subplots(figsize=(12, 6))
-
-# Plot power output on the primary y-axis
-ax1.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
-ax1.plot(july_1st['datetime'], july_1st['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
-ax1.set_xlabel('Datetime')
-ax1.set_ylabel('Energy (kWh)', color='black')
-ax1.tick_params(axis='y', labelcolor='black')
-ax1.grid(True)
-
-# Create a secondary y-axis for electricity price
-ax2 = ax1.twinx()
-ax2.plot(july_1st['datetime'], july_1st['Euro'], label='Electricity Price (€/MWh)', color='green')
-ax2.set_ylabel('Electricity Price (€/MWh)', color='green')
-ax2.tick_params(axis='y', labelcolor='green')
-
-# Add a title and legends
-fig.suptitle('Power Output, Load Profile, and Electricity Price on July 1st, 2024')
-ax1.legend(loc='upper left')
-ax2.legend(loc='upper right')
-
-# Adjust layout and save the plot
-fig.tight_layout()
-plt.savefig('results/power_output_load_profile_price_july_1st_secondary_yaxis.png')
-plt.show()
-
-charge_schedule['datetime'] = pd.to_datetime(charge_schedule['datetime']).dt.tz_localize(None)
-discharge_schedule['datetime'] = pd.to_datetime(discharge_schedule['datetime']).dt.tz_localize(None)
-# Filter the charge and discharge schedules for July 1st, 2024
-july_1st_charge_schedule = charge_schedule[
-    (charge_schedule['datetime'] >= pd.Timestamp('2000-07-01')) &
-    (charge_schedule['datetime'] < pd.Timestamp('2000-07-02'))
-]
-
-july_1st_discharge_schedule = discharge_schedule[
-    (discharge_schedule['datetime'] >= pd.Timestamp('2000-07-01')) &
-    (discharge_schedule['datetime'] < pd.Timestamp('2000-07-02'))
-]
-
-# Plot the power output, load profile, electricity price, charge schedule, and discharge schedule with a secondary y-axis
+# Plot the power output, load profile, and electricity price
 fig, ax1 = plt.subplots(figsize=(12, 6))
 
 # Plot power output on the primary y-axis
@@ -171,23 +132,31 @@ ax2.legend(loc='upper right')
 
 # Adjust layout and save the plot
 fig.tight_layout()
+# Plot power output and load profile on the primary y-axis
+ax1.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
+ax1.plot(july_1st['datetime'], july_1st['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
+ax1.set_xlabel('Datetime')
+ax1.set_ylabel('Energy (kWh)', color='black')
+ax1.tick_params(axis='y', labelcolor='black')
+ax1.grid(True)
+
+# Create a secondary y-axis for electricity price
+ax2 = ax1.twinx()
+ax2.plot(july_1st['datetime'], july_1st['Euro'], label='Electricity Price (€/MWh)', color='green')
+ax2.set_ylabel('Price (€/MWh)', color='green')
+ax2.tick_params(axis='y', labelcolor='green')
+
+# Add title and legend
+fig.suptitle('Power Output, Load Profile, and Electricity Price on July 1st, 2024')
+fig.tight_layout()
+fig.legend(loc="upper left", bbox_to_anchor=(0.1, 0.9))
+
+# Save the plot as an image
 plt.savefig('results/power_output_load_profile_price_charge_discharge_july_1st.png')
 plt.show()
 
 data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
 data.to_excel('results/data.xlsx', index=False)
-
-
-
-
-
-
-
-
-
-
-
-
 
 '''
 # Filter the power_difference data for the first day of January
