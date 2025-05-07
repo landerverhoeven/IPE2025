@@ -109,8 +109,6 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
         # Update the previous day's charge level for the next iteration
         previous_day_charge = end_of_day_charge_dict.get(day, 0)
 
-    print("Discharge schedule:")
-    print(discharge_schedule)
 
     # Create a DataFrame for the discharge schedule, including discharge power and charge level
     discharge_schedule_df = pd.DataFrame([
@@ -126,9 +124,6 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
         for i, hour in enumerate(discharge_schedule[day]['hours'])
     ])
     
-    print(discharge_schedule_df.head())
-
-
     # Adjust the format of the discharge_schedule_df to match the original data
     discharge_schedule_df['Minute'] = discharge_schedule_df.groupby(['Day', 'Hour']).cumcount() * 15
 

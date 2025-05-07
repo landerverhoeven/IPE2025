@@ -84,8 +84,8 @@ print(battery.head(50))
 
 # FINANCIAL EVALUATION
 # Cost in case of day/night tariff and dynamic tariff
-variable_data, totalcost_variable = day_night_electricity_cost(data, smart_battery)
-totalcost_dynamic = calculate_total_dynamic_cost(data, [0])
+variable_data, totalcost_variable = day_night_electricity_cost(data, ev_charge_schedule)
+totalcost_dynamic = calculate_total_dynamic_cost(data, ev_charge_schedule)
 capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_dynamic = financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period)
 # !!!!!! investment_cost needs to be checked !!!!! (Staat in het begin van main)
 
