@@ -16,10 +16,10 @@ from Conventional_charge_discharge import conventional_battery
 from EV_charge import charge_ev_weekly
 
 # Constants for PV system
-tilt_module = np.radians(30)  # Panel tilt angle (radians)
-azimuth_module = np.radians(90)  # Panel azimuth angle (radians)
-WP_panel = 350  # Panel power (W)
-N_module = 15  # Number of panels
+tilt_module = np.radians(5)  # Panel tilt angle (radians)
+azimuth_module = np.radians(180)  # Panel azimuth angle (radians)
+WP_panel = 445  # Panel power (W)
+N_module = 24  # Number of panels
 
 battery_capacity = 5  # Battery capacity (kWh)
 battery_capacity_ev = 65  # EV battery capacity (kWh)
@@ -40,6 +40,7 @@ power_output = pd.read_pickle('data/Corrected_power_output.pkl')
 load_profile = pd.read_pickle('data/Corrected_load_profile.pkl')
 belpex_data = pd.read_pickle('data/Corrected_belpex_data.pkl')
 data = pd.read_pickle('data/Corrected_data.pkl')
+
 '''
 # The excel files
 start_time = time.time()
@@ -58,6 +59,7 @@ print(f"Data correction took {end_time - start_time:.2f} seconds")
 
 # Calculate power difference for all timestamps
 power_difference = calculate_power_difference(data)
+data[['datetime', 'power_difference_kwh', 'power_difference_kwh_for_conventional']] = calculate_power_difference(data)
 
 #CONVENTIONAL CHARGE/DISCHARGE
 conventional_charge_schedule, conventional_discharge_schedule, conventional_charge_discharge_schedule = conventional_battery(battery_capacity, data)
@@ -89,37 +91,34 @@ capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_
 '''
 
 data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
-# Filter the data for July 1st, 2024
+
+# Filter the data for July 1st
 july_1st = data[
-    (data['datetime'] >= pd.Timestamp('2024-07-01')) &
-    (data['datetime'] < pd.Timestamp('2024-07-02'))
+    (data['datetime'] >= pd.Timestamp('2000-07-27')) &
+    (data['datetime'] < pd.Timestamp('2000-07-28'))
 ]
 
+# Plot the power output, load profile, and electricity price
+fig, ax1 = plt.subplots(figsize=(12, 6))
 
-# Verify the filtered data
-print("Filtered data for July 1st:")
-print(july_1st[['datetime', 'Power_Output_kWh', 'Volume_Afname_kWh', 'Euro']].head())
+# Plot power output and load profile on the primary y-axis
+ax1.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
+ax1.plot(july_1st['datetime'], july_1st['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
+ax1.set_xlabel('Datetime')
+ax1.set_ylabel('Energy (kWh)', color='black')
+ax1.tick_params(axis='y', labelcolor='black')
+ax1.grid(True)
 
-# Plot the power output, load profile, electricity price, charge schedule, and discharge schedule
-plt.figure(figsize=(12, 6))
+# Create a secondary y-axis for electricity price
+ax2 = ax1.twinx()
+ax2.plot(july_1st['datetime'], july_1st['Euro'], label='Electricity Price (€/MWh)', color='green')
+ax2.set_ylabel('Price (€/MWh)', color='green')
+ax2.tick_params(axis='y', labelcolor='green')
 
-# Plot power output
-plt.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
-
-# Plot load profile
-plt.plot(july_1st['datetime'], july_1st['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
-
-# Plot electricity price
-plt.plot(july_1st['datetime'], july_1st['Euro'], label='Electricity Price (€/MWh)', color='green')
-
-
-# Add labels, title, and legend
-plt.xlabel('Datetime')
-plt.ylabel('Energy (kWh) / Price (€/MWh)')
-plt.title('Power Output, Load Profile, Electricity Price, Charge, and Discharge on July 1st, 2024')
-plt.grid(True)
-plt.legend()
-plt.tight_layout()
+# Add title and legend
+fig.suptitle('Power Output, Load Profile, and Electricity Price on July 1st, 2024')
+fig.tight_layout()
+fig.legend(loc="upper left", bbox_to_anchor=(0.1, 0.9))
 
 # Save the plot as an image
 plt.savefig('results/power_output_load_profile_price_charge_discharge_july_1st.png')
@@ -127,18 +126,6 @@ plt.show()
 
 data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
 data.to_excel('results/data.xlsx', index=False)
-
-
-
-
-
-
-
-
-
-
-
-
 
 '''
 # Filter the power_difference data for the first day of January

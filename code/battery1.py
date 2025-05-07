@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def calculate_power_difference(data):
+    data = data.copy()  # Create a copy of the input DataFrame to avoid modifying the original
     """
     Calculate the power difference between power output and load profile.
 
@@ -83,7 +84,7 @@ def calculate_power_difference(data):
     """
     print('Total surplus:', data["power_difference_kwh"].sum(), 'kWh')
 
-    return data[['datetime', 'power_difference_kwh']]
+    return data[['datetime', 'power_difference_kwh', 'power_difference_kwh_for_conventional']]
 
 
 def calculate_average_daily_power_difference(power_difference_data):

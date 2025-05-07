@@ -2,6 +2,7 @@ from datetime import datetime, time, timedelta
 import pandas as pd
 
 def charge_ev_weekly(data, battery_capacity, max_charge_percent=100, max_charge_rate=2.3, drive_discharge=8):
+    data = data.copy()  # Create a copy of the input DataFrame to avoid modifying the original
     """
     Models an EV battery charging process for all weeks in the dataset.
     The battery discharges during daily driving (8 kWh between 8 AM and 6 PM) and charges

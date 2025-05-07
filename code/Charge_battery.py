@@ -5,6 +5,7 @@ from battery1 import calculate_power_difference
 
 
 def charge_battery(battery_capacity, data):
+    data = data.copy()  # Create a copy of the input DataFrame to avoid modifying the original
     """
     Determines the hours during which the battery should be charged based on electricity prices and power difference.
 
@@ -42,7 +43,6 @@ def charge_battery(battery_capacity, data):
 
 
     # Group data by day
-    data = data.copy()
     data['day'] = data['datetime'].dt.date
     
     grouped = data.groupby('day')

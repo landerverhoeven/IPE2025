@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
+    data= data.copy()  # Create a copy of the input DataFrame to avoid modifying the original
     """
     Discharge the battery based on the power difference and the end-of-day charge level,
     ensuring the battery is not discharged during hours when it is being charged.

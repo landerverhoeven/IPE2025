@@ -44,6 +44,7 @@ def payback_period(Total_cost_without_solar, Total_electricity_cost_solar, capex
 
 # ______ Financial Evaluation ______
 def financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period):
+    data = data.copy()  # Create a copy of the data to avoid modifying the original DataFrame
     print("______ FINANCIAL EVALUATION ______")
     # CAPEX (Capital Expenditure) calculation
     capex = calculate_capex(investment_cost, financing_rate, financing_period)
