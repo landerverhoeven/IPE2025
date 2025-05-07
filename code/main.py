@@ -9,7 +9,7 @@ from dynamic_electricity_cost import calculate_total_dynamic_cost
 from day_night_electricity_cost import day_night_electricity_cost
 from correct_data_files import all_correct_data_files
 from battery1 import calculate_power_difference, calculate_average_daily_power_difference
-from Charge_battery import charge_battery
+from Charge_battery import charge_battery, smart_battery_merge
 from Discharge_battery import discharge_battery
 from financial_evaluation import financial_evaluation
 from Conventional_charge_discharge import conventional_battery
@@ -65,12 +65,13 @@ data[['datetime', 'power_difference_kwh', 'power_difference_kwh_for_conventional
 conventional_charge_schedule, conventional_discharge_schedule, conventional_charge_discharge_schedule = conventional_battery(battery_capacity, data)
 print("Conventional charge/discharge schedule: Done")
 # Call charge_battery with the correct power_output and load_profile
-charge_schedule, data2, end_of_day_charge_level = charge_battery(battery_capacity, data)
+charge_schedule, data2, end_of_day_charge_level, battery_charge = charge_battery(battery_capacity, data)
 print("Smart charge schedule: Done")
 #print(charge_schedule)
 discharge_schedule = discharge_battery(data2, end_of_day_charge_level, charge_schedule)
 print("Smart discharge schedule: Done")
-
+smart_battery = smart_battery_merge(battery_charge, discharge_schedule)
+print("Smart battery: Done")
 ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
 print("EV charge schedule: Done")
 
@@ -81,14 +82,14 @@ print(conventional_charge_discharge_schedule.head(50))
 print("smart_charge_schedule:")
 print(battery.head(50))
 '''
-'''
+
 # FINANCIAL EVALUATION
 # Cost in case of day/night tariff and dynamic tariff
-variable_data, totalcost_variable = day_night_electricity_cost(data, battery_charge)
-totalcost_dynamic = calculate_total_dynamic_cost(data, [0])
+variable_data, totalcost_variable = day_night_electricity_cost(data, ev_charge_schedule)
+totalcost_dynamic = calculate_total_dynamic_cost(data, ev_charge_schedule)
 capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_dynamic = financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period)
 # !!!!!! investment_cost needs to be checked !!!!! (Staat in het begin van main)
-'''
+
 
 data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
 
