@@ -89,9 +89,44 @@ capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_
 '''
 
 data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
+# Filter the data for July 1st, 2024
+july_1st = data[
+    (data['datetime'] >= pd.Timestamp('2024-07-01')) &
+    (data['datetime'] < pd.Timestamp('2024-07-02'))
+]
+
+
+# Verify the filtered data
+print("Filtered data for July 1st:")
+print(july_1st[['datetime', 'Power_Output_kWh', 'Volume_Afname_kWh', 'Euro']].head())
+
+# Plot the power output, load profile, electricity price, charge schedule, and discharge schedule
+plt.figure(figsize=(12, 6))
+
+# Plot power output
+plt.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
+
+# Plot load profile
+plt.plot(july_1st['datetime'], july_1st['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
+
+# Plot electricity price
+plt.plot(july_1st['datetime'], july_1st['Euro'], label='Electricity Price (€/MWh)', color='green')
+
+
+# Add labels, title, and legend
+plt.xlabel('Datetime')
+plt.ylabel('Energy (kWh) / Price (€/MWh)')
+plt.title('Power Output, Load Profile, Electricity Price, Charge, and Discharge on July 1st, 2024')
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+
+# Save the plot as an image
+plt.savefig('results/power_output_load_profile_price_charge_discharge_july_1st.png')
+plt.show()
+
+data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
 data.to_excel('results/data.xlsx', index=False)
-
-
 
 
 
