@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import seaborn as sns
+import matplotlib.colors as mcolors
 import tabulate
 from plot import average_power, power_per_year, belpex_visualisation
 from dynamic_electricity_cost import calculate_total_dynamic_cost
@@ -65,6 +66,7 @@ data[['datetime', 'power_difference_kwh', 'power_difference_kwh_for_conventional
 conventional_charge_schedule, conventional_discharge_schedule, conventional_charge_discharge_schedule = conventional_battery(battery_capacity, data)
 print("Conventional charge/discharge schedule: Done")
 # Call charge_battery with the correct power_output and load_profile
+
 charge_schedule, data2, end_of_day_charge_level, battery_charge = charge_battery(battery_capacity, data)
 print("Smart charge schedule: Done")
 #print(charge_schedule)
@@ -74,6 +76,7 @@ print("Smart discharge schedule: Done")
 ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev, charge_schedule)
 smart_battery = smart_battery_merge(battery_charge, discharge_schedule)
 print("Smart battery: Done")
+
 ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev, charge_schedule)
 print("EV charge schedule: Done")
 
@@ -153,7 +156,44 @@ data.to_excel('results/data.xlsx', index=False)
 
 
 
+df = data.copy()
 
+# Extract relevant time info
+df['date'] = df['datetime'].dt.date  # Extract the date for the y-axis
+df['time'] = df['datetime'].dt.time  # Extract the time for the x-axis
+# Create heatmap matrix (date vs. time)
+heatmap_data = df.pivot_table(
+    index='date',  # Rows represent dates
+    columns='time',  # Columns represent times
+    values='Euro',
+    aggfunc='mean'
+).fillna(0)
+# Plot heatmap
+norm = mcolors.TwoSlopeNorm(vmin=-20, vcenter=130, vmax=500)
+
+plt.figure(figsize=(18, 8))
+ax = sns.heatmap(
+    heatmap_data,
+    cmap="RdBu_r",  # Diverging colormap: green for positive, blue for negative
+    norm=norm,  # Use the custom normalization
+    center=0,  # Center the colormap at 0
+    cbar_kws={'label': 'Electricity Price (€/MWh)'},  # Larger font for colorbar label
+    xticklabels=8,  # Show every 8th time label
+    yticklabels=30  # Show every 30th date label
+)
+
+# Set title and axis labels with larger font sizes
+plt.title("Electricity Price (Year Overview)", fontsize=18)
+plt.xlabel("Time of Day", fontsize=16)
+plt.ylabel("Date", fontsize=16)
+plt.xticks(fontsize=14, rotation=45)  # Rotate x-axis labels for better readability
+plt.yticks(fontsize=14)
+# Adjust colorbar font size
+cbar = ax.collections[0].colorbar
+cbar.ax.tick_params(labelsize=14)  # Set font size for colorbar ticks
+plt.tight_layout()
+plt.savefig('results/electricty_price_heatmap.png')
+plt.show()
 
 
 

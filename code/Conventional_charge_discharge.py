@@ -95,19 +95,26 @@ def conventional_battery(battery_capacity, data):
 
     # Plot heatmap
     plt.figure(figsize=(18, 8))
-    sns.heatmap(
+    ax = sns.heatmap(
         heatmap_data,
         cmap="BrBG",  # Diverging colormap: green for positive, blue for negative
         center=0,  # Center the colormap at 0
-        cbar_kws={'label': 'Charge Power (kW)', 'fontsize': 14},  # Larger font for colorbar label
+        cbar_kws={'label': 'Charge Power (kW)'},  # Remove 'fontsize' from here
         xticklabels=8,  # Show every 8th time label
         yticklabels=30  # Show every 30th date label
     )
-    plt.title("Conventional Battery Charging/Discharging Heatmap (Year Overview)", fontsize=16)
-    plt.xlabel("Time of Day", fontsize=14)
-    plt.ylabel("Date", fontsize=14)
-    plt.xticks(fontsize=12)
-    plt.yticks(fontsize=12)
+
+    # Set title and axis labels with larger font sizes
+    plt.title("Conventional Battery Charging/Discharging Heatmap (Year Overview)", fontsize=18)
+    plt.xlabel("Time of Day", fontsize=16)
+    plt.ylabel("Date", fontsize=16)
+    plt.xticks(fontsize=14, rotation=45)  # Rotate x-axis labels for better readability
+    plt.yticks(fontsize=14)
+
+    # Adjust colorbar font size
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=14)  # Set font size for colorbar ticks
+
     plt.tight_layout()
     plt.savefig('results/conventional_battery_heatmap.png')
     plt.show()
@@ -141,7 +148,7 @@ def conventional_battery(battery_capacity, data):
     # Plot grouped bar chart
     plt.figure(figsize=(12, 6))
     monthly_summary.plot(kind='bar', stacked=False, color=['green', 'blue'], width=0.8)
-    plt.title("Monthly Energy Charged and Discharged for Conventional Battery", fontsize=16)
+    plt.title("Monthly Energy Charged and Discharged by Conventional Battery")
     plt.xlabel("Month", fontsize=14)
     plt.ylabel("Energy (kWh)", fontsize=14)
     plt.xticks(

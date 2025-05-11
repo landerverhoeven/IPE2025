@@ -1,5 +1,7 @@
 from datetime import datetime, time, timedelta
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge_percent=100, max_charge_rate=2.3, drive_discharge=8):
     """
@@ -217,4 +219,86 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
     results_df.to_excel('results/ev_charge_schedule_with_charging.xlsx', index=False)
     print(f"Charge schedule saved to {'results/ev_charge_schedule_with_charging.xlsx'}")
 
+        # Load data
+    df = results_df.copy()
+
+    # Convert datetime column to pandas datetime type
+    df['datetime'] = pd.to_datetime(df['datetime'])
+
+   # Extract relevant time info
+    df['date'] = df['datetime'].dt.date  # Extract the date for the y-axis
+    df['time'] = df['datetime'].dt.time  # Extract the time for the x-axis
+
+    # Create heatmap matrix (date vs. time)
+    heatmap_data = df.pivot_table(
+        index='date',  # Rows represent dates
+        columns='time',  # Columns represent times
+        values='charge_power',
+        aggfunc='mean'
+    ).fillna(0)
+
+    # Plot heatmap
+    plt.figure(figsize=(18, 8))
+    ax = sns.heatmap(
+        heatmap_data,
+        cmap="BrBG",  # Diverging colormap: green for positive, blue for negative
+        center=0,  # Center the colormap at 0
+        cbar_kws={'label': 'Charge Power (kW)'},
+        xticklabels=8,  # Show every 8th time label
+        yticklabels=30  # Show every 30th date label
+    )
+    
+    # Set title and axis labels with larger font sizes
+    plt.title("EV Battery Charging Heatmap (Year Overview)", fontsize=18)
+    plt.xlabel("Time of Day", fontsize=16)
+    plt.ylabel("Date", fontsize=16)
+    plt.xticks(fontsize=14, rotation=45)
+    plt.yticks(fontsize=14)
+
+    # Adjust colorbar font size
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=14)  # Set font size for colorbar ticks
+
+    plt.tight_layout()
+    plt.savefig('results/EV_battery_heatmap.png')
+    plt.show()
+
+    '''
+    # ---- 2️⃣ Average Daily Charging Profile ----
+    avg_daily_profile = df.groupby('time_of_day')['charge_power'].mean()
+
+    plt.figure(figsize=(18, 6))
+    avg_daily_profile.plot(kind='line', color='teal')
+    plt.title('Average Daily EV Charging Profile', fontsize=18)
+    plt.xlabel('Time of Day')
+    plt.ylabel('Average Charge Power (kW)')
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+
+    # ---- 3️⃣ Full Time Series (Daily Average) ----
+    daily_avg_power = df.set_index('datetime')['charge_power'].resample('D').mean()
+
+    plt.figure(figsize=(20, 6))
+    daily_avg_power.plot(kind='line', color='purple')
+    plt.title('Daily Average EV Charging Power Over the Year', fontsize=18)
+    plt.xlabel('Date')
+    plt.ylabel('Average Charge Power (kW)')
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.show()
+
+
+    # ---- 4️⃣ Filled Area Chart (Full Year) ----
+    plt.figure(figsize=(20, 6))
+    df.set_index('datetime')['charge_power'].plot(kind='area', color='skyblue', alpha=0.6)
+    plt.title('EV Charging Power Over the Year (Area Chart)', fontsize=18)
+    plt.xlabel('Date')
+    plt.ylabel('Charge Power (kW)')
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.show()
+    '''
     return results_df

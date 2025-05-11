@@ -264,7 +264,7 @@ def smart_battery_merge(battery_charge, discharge_schedule):
 
     # Plot heatmap
     plt.figure(figsize=(18, 8))
-    sns.heatmap(
+    ax = sns.heatmap(
         heatmap_data,
         cmap="BrBG",  # Diverging colormap: green for positive, blue for negative
         center=0,  # Center the colormap at 0
@@ -272,9 +272,18 @@ def smart_battery_merge(battery_charge, discharge_schedule):
         xticklabels=8,  # Show every 8th time label
         yticklabels=30  # Show every 30th date label
     )
-    plt.title("Smart Battery Charging/Discharging Heatmap (Year Overview)")
-    plt.xlabel("Time of Day")
-    plt.ylabel("Date")
+    
+    # Set title and axis labels with larger font sizes
+    plt.title("Smart Battery Charging/Discharging Heatmap (Year Overview)", fontsize=18)
+    plt.xlabel("Time of Day", fontsize=16)
+    plt.ylabel("Date", fontsize=16)
+    plt.xticks(fontsize=14, rotation=45)
+    plt.yticks(fontsize=14)
+
+    # Adjust colorbar font size
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=14)  # Set font size for colorbar ticks
+
     plt.tight_layout()
     plt.savefig('results/smart_battery_heatmap.png')
     plt.show()
