@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import seaborn as sns
 import tabulate
 from plot import average_power, power_per_year, belpex_visualisation
 from dynamic_electricity_cost import calculate_total_dynamic_cost
@@ -74,7 +75,7 @@ print("Smart discharge schedule: Done")
 ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev, charge_schedule)
 smart_battery = smart_battery_merge(battery_charge, discharge_schedule)
 print("Smart battery: Done")
-ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev)
+ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev, charge_schedule)
 print("EV charge schedule: Done")
 
 '''''
@@ -93,6 +94,20 @@ capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_
 # !!!!!! investment_cost needs to be checked !!!!! (Staat in het begin van main)
 
 
+
+
+
+
+
+
+
+
+
+
+
+#POST-PROCESSING
+
+
 data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
 
 # Filter the data for July 1st
@@ -100,63 +115,50 @@ july_1st = data[
     (data['datetime'] >= pd.Timestamp('2000-07-27')) &
     (data['datetime'] < pd.Timestamp('2000-07-28'))
 ]
-
+july_1st_smart_schedule = smart_battery[
+    (smart_battery['datetime'] >= pd.Timestamp('2000-07-27')) &
+    (smart_battery['datetime'] < pd.Timestamp('2000-07-28'))
+]
 # Plot the power output, load profile, and electricity price
 fig, ax1 = plt.subplots(figsize=(12, 6))
 
-# Plot power output on the primary y-axis
-ax1.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
-ax1.plot(july_1st['datetime'], july_1st['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
-
-# Plot charge schedule
-ax1.plot(july_1st_charge_schedule['datetime'], july_1st_charge_schedule['charging_power'], label='Charge Schedule (kWh)', color='purple')
-
-# Plot discharge schedule
-ax1.plot(july_1st_discharge_schedule['datetime'], july_1st_discharge_schedule['discharging_power'], label='Discharge Schedule (kWh)', color='orange')
-
-ax1.set_xlabel('Datetime')
-ax1.set_ylabel('Energy (kWh)', color='black')
-ax1.tick_params(axis='y', labelcolor='black')
-ax1.grid(True)
-
-# Create a secondary y-axis for electricity price
-ax2 = ax1.twinx()
-ax2.plot(july_1st['datetime'], july_1st['Euro'], label='Electricity Price (€/MWh)', color='green')
-ax2.set_ylabel('Electricity Price (€/MWh)', color='green')
-ax2.tick_params(axis='y', labelcolor='green')
-
-# Add a title and legends
-fig.suptitle('Power Output, Load Profile, Electricity Price, Charge, and Discharge on July 1st, 2024')
-ax1.legend(loc='upper left')
-ax2.legend(loc='upper right')
-
-# Adjust layout and save the plot
-fig.tight_layout()
 # Plot power output and load profile on the primary y-axis
 ax1.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
 ax1.plot(july_1st['datetime'], july_1st['Volume_Afname_kWh'], label='Load Profile (kWh)', color='red')
-ax1.set_xlabel('Datetime')
-ax1.set_ylabel('Energy (kWh)', color='black')
-ax1.tick_params(axis='y', labelcolor='black')
+ax1.plot(july_1st_smart_schedule['datetime'], july_1st_smart_schedule['charge_power'], label='Charge Schedule (kWh)', color='orange')
+
+# Set axis labels with larger font size
+ax1.set_xlabel('Datetime', fontsize=14)
+ax1.set_ylabel('Energy (kWh)', color='black', fontsize=14)
+ax1.tick_params(axis='y', labelcolor='black', labelsize=12)
+ax1.tick_params(axis='x', labelsize=12)
 ax1.grid(True)
 
 # Create a secondary y-axis for electricity price
 ax2 = ax1.twinx()
 ax2.plot(july_1st['datetime'], july_1st['Euro'], label='Electricity Price (€/MWh)', color='green')
-ax2.set_ylabel('Price (€/MWh)', color='green')
-ax2.tick_params(axis='y', labelcolor='green')
+ax2.set_ylabel('Electricity Price (€/MWh)', color='green', fontsize=14)
+ax2.tick_params(axis='y', labelcolor='green', labelsize=12)
 
-# Add title and legend
-fig.suptitle('Power Output, Load Profile, and Electricity Price on July 1st, 2024')
+# Add title and legend with larger font size
+fig.suptitle('Power Output, Load Profile, Charge Schedule, and Electricity Price on July 27, 2024', fontsize=16)
+fig.legend(loc="upper left", bbox_to_anchor=(0.1, 0.9), fontsize=12)
+
+# Adjust layout and save the plot
 fig.tight_layout()
-fig.legend(loc="upper left", bbox_to_anchor=(0.1, 0.9))
-
-# Save the plot as an image
 plt.savefig('results/power_output_load_profile_price_charge_discharge_july_1st.png')
 plt.show()
 
 data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
 data.to_excel('results/data.xlsx', index=False)
+
+
+
+
+
+
+
+
 
 '''
 # Filter the power_difference data for the first day of January

@@ -67,9 +67,14 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
         for _, row in sorted_group.iterrows():
             hour = row['datetime'].hour
             power_difference1 = row['Volume_Afname_kWh']
+            power_difference2 = row['power_difference_kwh']
 
             # Skip discharging if the battery is being charged during this hour
             if hour in charging_hours:
+                continue
+
+# Skip discharging if the power difference is positive
+            if power_difference2 != 0:
                 continue
 
             if current_charge > 0:

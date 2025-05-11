@@ -1,12 +1,7 @@
 from datetime import datetime, time, timedelta
 import pandas as pd
 
-<<<<<<< HEAD
 def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge_percent=100, max_charge_rate=2.3, drive_discharge=8):
-=======
-def charge_ev_weekly(data, battery_capacity, max_charge_percent=100, max_charge_rate=2.3, drive_discharge=8):
-    data = data.copy()  # Create a copy of the input DataFrame to avoid modifying the original
->>>>>>> b970dfd6afdf871ec8c84cf8e2e201cf7fb414db
     """
     Models an EV battery charging process for all weeks in the dataset.
     The battery discharges during daily driving (8 kWh between 8 AM and 6 PM) and charges
@@ -66,15 +61,9 @@ def charge_ev_weekly(data, battery_capacity, max_charge_percent=100, max_charge_
             "datetime": dt,
             "price": entry['Euro'],
             "power_surplus": entry['power_difference_kwh'],
-<<<<<<< HEAD
             "charging_power": 0,  # No charging during this iteration
             "discharge_charge": current_charge  # Preserve the charge after discharging
         })
-=======
-            "charge_power": 0,  # No charging during this iteration
-            "discharge_charge": current_charge  # Preserve the charge after discharging            
-            })
->>>>>>> b970dfd6afdf871ec8c84cf8e2e201cf7fb414db
 
     # Convert the results list to a DataFrame for charging simulation
     results_df = pd.DataFrame(results)
