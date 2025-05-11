@@ -61,9 +61,9 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
             "datetime": dt,
             "price": entry['Euro'],
             "power_surplus": entry['power_difference_kwh'],
-            "charging_power": 0,  # No charging during this iteration
-            "discharge_charge": current_charge  # Preserve the charge after discharging
-        })
+            "charge_power": 0,  # No charging during this iteration
+            "discharge_charge": current_charge  # Preserve the charge after discharging            
+            })
 
     # Convert the results list to a DataFrame for charging simulation
     results_df = pd.DataFrame(results)

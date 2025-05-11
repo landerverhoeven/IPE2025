@@ -17,21 +17,20 @@ from Conventional_charge_discharge import conventional_battery
 from EV_charge import charge_ev_weekly
 
 # Constants for PV system
-tilt_module = np.radians(5)  # Panel tilt angle (radians)
-azimuth_module = np.radians(180)  # Panel azimuth angle (radians)
+tilt_module = np.radians(5)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+azimuth_module = np.radians(180)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
 WP_panel = 445  # Panel power (W)
 N_module = 24  # Number of panels
 
-battery_capacity = 5  # Battery capacity (kWh)
+battery_capacity = 6.5  # Battery capacity (kWh)
 battery_capacity_ev = 65  # EV battery capacity (kWh)
 battery_capacity_ev_min = 0.2 * battery_capacity_ev  # Minimum charge level (20% of capacity)
-battery_capacity_ev_max = 0.8 * battery_capacity_ev  # Maximum charge level (80% of capacity)
+battery_capacity_ev_max = 1 * battery_capacity_ev  # Maximum charge level (80% of capacity)
 
 # Costs
-scissor_lift_cost = 170  # incl. vat
-installation_cost = 1200  # incl.vat
-uniet_solar_panel_cost = 110  # incl. vat
-investment_cost = scissor_lift_cost + installation_cost + uniet_solar_panel_cost * N_module
+subtotal1 = 7213.78 # flat mounting system
+subtotal2 = 7476.26 # tilted mounting system
+investment_cost = subtotal1 # Choose one of the two subtotal values
 financing_rate = 0.02  # Example financing rate (5%)
 financing_period = 20  # Example financing period (20 years)
 
