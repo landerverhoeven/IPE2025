@@ -15,7 +15,10 @@ def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, ir
 
     # Ensure DateTime is a timezone-aware datetime in Europe/Brussels timezone
     irradiance_data["DateTime"] = pd.to_datetime(irradiance_data["DateTime"])  # Ensure DateTime is in datetime format
-    irradiance_data["DateTime"] = irradiance_data["DateTime"].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
+    if irradiance_data["DateTime"].dt.tz is None:
+        irradiance_data["DateTime"] = irradiance_data["DateTime"].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
+    else:
+        irradiance_data["DateTime"] = irradiance_data["DateTime"].dt.tz_convert("Europe/Brussels")
     
     # Convert DateTime to UTC for solar position calculations
     irradiance_data["DateTime_UTC"] = irradiance_data["DateTime"].dt.tz_convert("UTC")
