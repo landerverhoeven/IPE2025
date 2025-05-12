@@ -67,6 +67,14 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     # Calculate power difference for all timestamps
     #power_difference = calculate_power_difference(data)
     data[['datetime', 'power_difference_kwh', 'power_difference_kwh_for_conventional']] = calculate_power_difference(data)
+    '''
+    charge_schedule, data2, end_of_day_charge_level, battery_charge = charge_battery(battery_capacity, data)
+    discharge_schedule = discharge_battery(data2, end_of_day_charge_level, charge_schedule)
+    smart_battery = smart_battery_merge(battery_charge, discharge_schedule)
+    smart_battery['datetime'] = smart_battery['datetime'].dt.tz_localize(None)
+    smart_battery.to_excel('results/smart_battery.xlsx', index=False)
+    exit()
+    '''
     # Battery
     if battery_type == 0:
         evaluated_battery = [0]
@@ -78,6 +86,7 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
         discharge_schedule = discharge_battery(data2, end_of_day_charge_level, charge_schedule)
         smart_battery = smart_battery_merge(battery_charge, discharge_schedule)
         evaluated_battery = smart_battery
+        smart_battery.to_excel('results/smart_battery.xlsx', index=False)
         
     elif battery_type == 3:
         charge_schedule, data2, end_of_day_charge_level, battery_charge = charge_battery(battery_capacity, data)

@@ -70,8 +70,9 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
             power_difference2 = row['power_difference_kwh']
 
             # Skip discharging if the battery is being charged during this hour
-            if hour in charging_hours:
-                continue
+            # --> i put this one in comment because now it is never overcharged, prices are slightly better and charging and discharging and the same time just means less charging which is completely valid.
+            #if hour in charging_hours:
+            #    continue
 
             # Skip discharging if the power difference is positive
             if power_difference2 != 0:
@@ -90,8 +91,8 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
                 # Stop discharging if the battery is empty
             if current_charge <= 0:
                 break
-        if current_charge > 0:
-            print(f"Warning: Current charge for {day} is positive with {current_charge} after discharging.")
+        #if current_charge > 0:
+        #    print(f"Warning: Current charge for {day} is positive with {current_charge} after discharging.")
             
 
         # Ensure the hours and power are sorted in chronological order
