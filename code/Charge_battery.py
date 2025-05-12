@@ -286,7 +286,7 @@ def smart_battery_merge(battery_charge, discharge_schedule):
 
     plt.tight_layout()
     plt.savefig('results/smart_battery_heatmap.png')
-    plt.show()
+    #plt.show()
 
     # Zoomed-in week view (e.g., May 30 to June 5, 2000)
     week_data = df[(df['datetime'] >= pd.Timestamp('2000-05-30')) & (df['datetime'] < pd.Timestamp('2000-06-06'))]
@@ -300,7 +300,7 @@ def smart_battery_merge(battery_charge, discharge_schedule):
     plt.grid(True)
     plt.tight_layout()
     plt.savefig('results/smart_battery_week_view.png')
-    plt.show()
+    #plt.show()
 
         # Extract month
     df['month'] = df['datetime'].dt.month
@@ -328,6 +328,6 @@ def smart_battery_merge(battery_charge, discharge_schedule):
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
     plt.savefig('results/smart_battery_monthly_summary.png')
-    plt.show()
+    #plt.show()
 
     return smart_battery

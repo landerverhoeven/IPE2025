@@ -41,7 +41,7 @@ def average_power(power_output, load_profile):
     plt.grid()
     plt.xticks(np.arange(0, 1441, 60), labels=[f'{h}:00' for h in range(25)], rotation=45)
     plt.tight_layout()
-    plt.show()
+    #plt.show()
 
     return average_power_output, average_load
 
@@ -83,7 +83,7 @@ def power_per_year(power_output, load_profile):
     plt.grid(True)
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.show()
+    #plt.show()
 
 def belpex_visualisation(belpex_data):
     belpex_data = belpex_data.copy()
@@ -101,4 +101,4 @@ def belpex_visualisation(belpex_data):
     plt.grid(True)
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.show()
+    #plt.show()

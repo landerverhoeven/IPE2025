@@ -16,9 +16,9 @@ from Discharge_battery import discharge_battery
 from financial_evaluation import financial_evaluation
 from Conventional_charge_discharge import conventional_battery
 from EV_charge import charge_ev_weekly
-
+start_total_time = time.time()
 # Constants for PV system
-tilt_module = np.radians(5)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+tilt_module = np.radians(35)  # Panel tilt angle (radians). 5°: Flat roof, 35°: Tilted roof.
 azimuth_module = np.radians(180)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
 WP_panel = 445  # Panel power (W)
 N_module = 24  # Number of panels
@@ -31,12 +31,13 @@ battery_capacity_ev_max = 1 * battery_capacity_ev  # Maximum charge level (80% o
 # Costs
 subtotal1 = 7213.78 # flat mounting system
 subtotal2 = 7476.26 # tilted mounting system
-investment_cost = subtotal1 # Choose one of the two subtotal values
+investment_cost = subtotal2 # Choose one of the two subtotal values
 financing_rate = 0.02  # Example financing rate (5%)
 financing_period = 20  # Example financing period (20 years)
 
 # importing corrected files (first run data_configuration to correct the files)
 start_time = time.time()
+'''
 power_output = pd.read_pickle('data/Corrected_power_output.pkl')
 load_profile = pd.read_pickle('data/Corrected_load_profile.pkl')
 belpex_data = pd.read_pickle('data/Corrected_belpex_data.pkl')
@@ -49,7 +50,7 @@ power_output_old  = pd.read_csv('data/Irradiance_data.csv', parse_dates=['DateTi
 load_profile_old = pd.read_csv('data/Load_profile_8.csv', parse_dates=['Datum_Startuur'])
 belpex_data_old = pd.read_csv('data/Belpex_2024.csv', delimiter=';', parse_dates=['Date'], encoding='ISO-8859-1', dayfirst=True)
 data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, WP_panel, N_module, tilt_module, azimuth_module)
-'''
+
 end_time = time.time()
 print(f"Data correction took {end_time - start_time:.2f} seconds")
 
@@ -73,14 +74,14 @@ print("Smart charge schedule: Done")
 discharge_schedule = discharge_battery(data2, end_of_day_charge_level, charge_schedule)
 print("Smart discharge schedule: Done")
 
-ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev, charge_schedule)
+
 smart_battery = smart_battery_merge(battery_charge, discharge_schedule)
 print("Smart battery: Done")
-
+'''
 ev_charge_schedule = charge_ev_weekly(data, battery_capacity_ev, charge_schedule)
 print("EV charge schedule: Done")
 
-'''''
+
 print("conventional_charge_discharge_schedule:")
 print(conventional_charge_discharge_schedule.head(50))
 
@@ -90,17 +91,30 @@ print(battery.head(50))
 
 # FINANCIAL EVALUATION
 # Cost in case of day/night tariff and dynamic tariff
-variable_data, totalcost_variable = day_night_electricity_cost(data, ev_charge_schedule)
-totalcost_dynamic = calculate_total_dynamic_cost(data, ev_charge_schedule)
+#evaluated_battery = [0]
+#evaluated_battery = conventional_charge_discharge_schedule
+evaluated_battery = smart_battery
+#evaluated_battery = ev_charge_schedule
+
+variable_data, totalcost_variable = day_night_electricity_cost(data, evaluated_battery)
+totalcost_dynamic = calculate_total_dynamic_cost(data, evaluated_battery)
+
+print("______ Used Parameters ______")
+print("tilt angle:", tilt_module)
+print("azimuth angle:", azimuth_module)
+print("number of panels:", N_module)
+print("Battery: smart battery")
+print("financing rate:", financing_rate)
 capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_dynamic = financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period)
-# !!!!!! investment_cost needs to be checked !!!!! (Staat in het begin van main)
+
+end_total_time = time.time()
+print(f"Total time to run the script: {end_total_time - start_total_time:.2f} seconds")
 
 
 
 
 
-
-
+exit()
 
 
 

@@ -58,4 +58,4 @@ plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.savefig('results/power_difference_plot.png')  # Save the plot as an image
-plt.show()
+#plt.show()

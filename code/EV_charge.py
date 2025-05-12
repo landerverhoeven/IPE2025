@@ -263,7 +263,7 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
 
     plt.tight_layout()
     plt.savefig('results/EV_battery_heatmap.png')
-    plt.show()
+    #plt.show()
 
     '''
     # ---- 2️⃣ Average Daily Charging Profile ----

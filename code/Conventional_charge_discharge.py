@@ -117,7 +117,7 @@ def conventional_battery(battery_capacity, data):
 
     plt.tight_layout()
     plt.savefig('results/conventional_battery_heatmap.png')
-    plt.show()
+    #plt.show()
 
     # Zoomed-in week view (e.g., May 30 to June 5, 2000)
     week_data = df[(df['hour'] >= pd.Timestamp('2000-05-30')) & (df['hour'] < pd.Timestamp('2000-06-06'))]
@@ -133,7 +133,7 @@ def conventional_battery(battery_capacity, data):
     plt.grid(True)
     plt.tight_layout()
     plt.savefig('results/conventional_battery_week_view.png')
-    plt.show()
+    #plt.show()
 
         # Extract month
     df['month'] = df['hour'].dt.month
@@ -163,6 +163,6 @@ def conventional_battery(battery_capacity, data):
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
     plt.savefig('results/conventional_battery_monthly_summary.png')
-    plt.show()
+    #plt.show()
 
     return convention_charge_schedule_df, convention_discharge_schedule_df, convention_charge_discharge_schedule_df
