@@ -70,12 +70,12 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
             power_difference2 = row['power_difference_kwh']
 
             # Skip discharging if the battery is being charged during this hour
-            #if hour in charging_hours:
-                #continue
+            if hour in charging_hours:
+                continue
 
             # Skip discharging if the power difference is positive
-            #if power_difference2 != 0:
-                #continue
+            if power_difference2 != 0:
+                continue
 
             if current_charge > 0:
                 current_charge -= power_difference1  # Discharge the battery

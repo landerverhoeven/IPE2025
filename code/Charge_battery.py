@@ -45,46 +45,57 @@ def charge_battery(battery_capacity, data):
 
     # Group data by day
     data['day'] = data['datetime'].dt.date
-    
-    grouped = data.groupby('day')
-    
-    charge_schedule = {}
+    data['residual_load'] = data['Volume_Afname_kWh'] - data['Power_Output_kWh']
+    data['residual_load'] = data['residual_load'].clip(lower=0)
 
-    # Initialize a list to store the charge level at the end of each day
-    end_of_day_charge_levels = []
+    grouped = data.groupby('day')
+
+    charge_schedule = {}
+    end_of_day_charge_levels = []  # List to store the charge level at the end of each day
 
     # Process each day
-    for day, group in grouped:
+    days = list(grouped.groups.keys())  # Get the list of all days
+    for i, day in enumerate(days):
+        group = grouped.get_group(day)
+
+        # Calculate the charging capacity for the day based on the residual load of the next day
+        if i + 1 < len(days):  # Check if there is a next day
+            next_day = days[i + 1]
+            next_day_group = grouped.get_group(next_day)
+            temp_capacity = next_day_group['residual_load'].sum()
+        else:
+            temp_capacity = 0  # No next day, so set capacity to 0
+
         # Reset the battery charge at the start of each day
         current_charge = 0  # Reset the current charge of the battery
-        
+
         # Sort by price (cheapest to most expensive)
         sorted_group = group.sort_values(by='Euro')
-        
+
         charge_hours = []
         charge_power = []  # List to store the power charged during each hour
-        
+
         # Iterate through the sorted hours
         for _, row in sorted_group.iterrows():
             hour = row['datetime'].hour
             power_difference1 = row['power_difference_kwh']
-            
+
             # Only add the hour if power_difference is not 0
             if power_difference1 != 0:
                 # Add power difference to the total and update current charge
                 current_charge += power_difference1
-                if current_charge > battery_capacity:
+                if current_charge > temp_capacity:
                     # Adjust the last charged power to avoid exceeding capacity
-                    power_difference1 -= (current_charge - battery_capacity)
-                    current_charge = battery_capacity
-                
+                    power_difference1 -= (current_charge - temp_capacity)
+                    current_charge = temp_capacity
+
                 charge_hours.append(hour)
                 charge_power.append(power_difference1)  # Track the power charged during this hour
-                
-            # Stop charging if the battery is full
-            if current_charge >= battery_capacity:
-                break
-        
+
+                # Stop charging if the battery is full
+                if current_charge >= temp_capacity:
+                    break
+
         # Ensure the hours and power are sorted in chronological order
         sorted_indices = sorted(range(len(charge_hours)), key=lambda i: charge_hours[i])
         charge_hours = [charge_hours[i] for i in sorted_indices]
@@ -95,8 +106,8 @@ def charge_battery(battery_capacity, data):
         current_charge = 0
         for power in charge_power:
             current_charge += power
-            if current_charge > battery_capacity:
-                current_charge = battery_capacity
+            if current_charge > temp_capacity:
+                current_charge = temp_capacity
             charge_levels.append(current_charge)
 
         # Store the sorted and calculated data in the charge_schedule
@@ -136,7 +147,7 @@ def charge_battery(battery_capacity, data):
     # Save the charge_schedule DataFrame to an Excel file
     charge_schedule_df.to_excel('results/charge_schedule.xlsx', index=False)
 
-    # make sure datetime is in the same timezone as the original data
+    # Make sure datetime is in the same timezone as the original data
     charge_schedule_df['datetime'] = charge_schedule_df['datetime'].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
 
     # Merge data with charge_schedule_df to include the original data columns
@@ -144,7 +155,6 @@ def charge_battery(battery_capacity, data):
     merged_data['Charge Power (kWh)'] = merged_data['Charge Power (kWh)'].fillna(0)
     merged_data['Charge Level (kWh)'] = merged_data['Charge Level (kWh)'].fillna(0)
     merged_data.drop(columns=['day', 'power_difference_kwh'], inplace=True)
-    
 
     battery_charge = pd.DataFrame()
     battery_charge['datetime'] = merged_data['datetime']
@@ -286,7 +296,7 @@ def smart_battery_merge(battery_charge, discharge_schedule):
 
     plt.tight_layout()
     plt.savefig('results/smart_battery_heatmap.png')
-    #plt.show()
+    plt.show()
 
     # Zoomed-in week view (e.g., May 30 to June 5, 2000)
     week_data = df[(df['datetime'] >= pd.Timestamp('2000-05-30')) & (df['datetime'] < pd.Timestamp('2000-06-06'))]
@@ -300,7 +310,7 @@ def smart_battery_merge(battery_charge, discharge_schedule):
     plt.grid(True)
     plt.tight_layout()
     plt.savefig('results/smart_battery_week_view.png')
-    #plt.show()
+    plt.show()
 
         # Extract month
     df['month'] = df['datetime'].dt.month
@@ -328,6 +338,6 @@ def smart_battery_merge(battery_charge, discharge_schedule):
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
     plt.savefig('results/smart_battery_monthly_summary.png')
-    #plt.show()
+    plt.show()
 
     return smart_battery

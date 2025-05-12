@@ -67,20 +67,6 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     # Calculate power difference for all timestamps
     #power_difference = calculate_power_difference(data)
     data[['datetime', 'power_difference_kwh', 'power_difference_kwh_for_conventional']] = calculate_power_difference(data)
-    '''
-    conventional_charge_schedule, conventional_discharge_schedule, conventional_charge_discharge_schedule = conventional_battery(battery_capacity, data)
-    conventional_charge_discharge_schedule.to_excel('results/conventional_battery.xlsx', index=False)
-    charge_schedule, data2, end_of_day_charge_level, battery_charge = charge_battery(battery_capacity, data)
-    discharge_schedule = discharge_battery(data2, end_of_day_charge_level, charge_schedule)
-    # remorve timezones for battery_charge and discharge_schedule
-    battery_charge['datetime'] = battery_charge['datetime'].dt.tz_localize(None)
-    discharge_schedule['datetime'] = discharge_schedule['datetime'].dt.tz_localize(None)
-    smart_battery = smart_battery_merge(battery_charge, discharge_schedule)
-    battery_charge.to_excel('results/charge_battery.xlsx', index=False)
-    discharge_schedule.to_excel('results/discharge_battery.xlsx', index=False)
-    smart_battery.to_excel('results/smart_battery.xlsx', index=False)
-    exit()
-    '''
     # Battery
     if battery_type == 0:
         evaluated_battery = [0]
@@ -113,7 +99,6 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     variable_data, totalcost_variable = day_night_electricity_cost(data, evaluated_battery)
     totalcost_dynamic = calculate_total_dynamic_cost(data, evaluated_battery)
     capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_dynamic = financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period)
-  
 
 
 
@@ -271,7 +256,7 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     plt.show()
     '''
     plt.close('all')
-
+ # Constants for PV system
 
 # ------------------------ Variables ------------------------
 
