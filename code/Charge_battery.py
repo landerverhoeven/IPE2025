@@ -62,7 +62,7 @@ def charge_battery(battery_capacity, data):
         if i + 1 < len(days):  # Check if there is a next day
             next_day = days[i + 1]
             next_day_group = grouped.get_group(next_day)
-            temp_capacity = next_day_group['residual_load'].sum()
+            temp_capacity = min(next_day_group['residual_load'].sum(),battery_capacity)
         else:
             temp_capacity = 0  # No next day, so set capacity to 0
 
