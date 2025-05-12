@@ -70,12 +70,12 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
             power_difference2 = row['power_difference_kwh']
 
             # Skip discharging if the battery is being charged during this hour
-            if hour in charging_hours:
-                continue
+            #if hour in charging_hours:
+                #continue
 
-# Skip discharging if the power difference is positive
-            if power_difference2 != 0:
-                continue
+            # Skip discharging if the power difference is positive
+            #if power_difference2 != 0:
+                #continue
 
             if current_charge > 0:
                 current_charge -= power_difference1  # Discharge the battery
@@ -88,8 +88,11 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
                 discharge_power.append(power_difference1)  # Track the power discharged during this hour
 
                 # Stop discharging if the battery is empty
-                if current_charge <= 0:
-                    break
+            if current_charge <= 0:
+                break
+        if current_charge > 0:
+            print(f"Warning: Current charge for {day} is positive with {current_charge} after discharging.")
+            
 
         # Ensure the hours and power are sorted in chronological order
         sorted_indices = sorted(range(len(discharge_hours)), key=lambda i: discharge_hours[i])
@@ -135,14 +138,14 @@ def discharge_battery(data, end_of_day_charge_levels, charge_schedule):
 
     # Handle potential issues with daylight saving time and invalid minute values
     discharge_schedule_df['Minute'] = discharge_schedule_df['Minute'].apply(lambda x: {
-        60: 0,
-        75: 15,
-        90: 30,
-        105: 45
+        60: 1,
+        75: 16,
+        90: 31,
+        105: 46
     }.get(x, x))  # Replace invalid values with the correct ones or keep the original value
 
     # Warn if unexpected minute values are found
-    if (discharge_schedule_df['Minute'] > 45).any():
+    if (discharge_schedule_df['Minute'] > 46).any():
         print("Warning: Minute value is not in the expected range.")
 
     # Create the 'datetime' column

@@ -81,9 +81,9 @@ def charge_battery(battery_capacity, data):
                 charge_hours.append(hour)
                 charge_power.append(power_difference1)  # Track the power charged during this hour
                 
-                # Stop charging if the battery is full
-                if current_charge >= battery_capacity:
-                    break
+            # Stop charging if the battery is full
+            if current_charge >= battery_capacity:
+                break
         
         # Ensure the hours and power are sorted in chronological order
         sorted_indices = sorted(range(len(charge_hours)), key=lambda i: charge_hours[i])
@@ -235,7 +235,7 @@ def smart_battery_merge(battery_charge, discharge_schedule):
         )
         # If discharge_power is not NaN, set charge_power to -1 * discharge_power
         smart_battery['charge_power'] = smart_battery.apply(
-            lambda row: -1 * row['discharge_power'] if row['discharge_power'] != 0 else row['charge_power'],
+            lambda row: row['charge_power'] - row['discharge_power'],
             axis=1
         )
         # Drop the 'discharge_power' column as it's no longer needed
