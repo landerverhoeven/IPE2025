@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge_percent=100, max_charge_rate=2.3, drive_discharge=8):
+    data = data.copy()
+    
     """
     Models an EV battery charging process for all weeks in the dataset.
     The battery discharges during daily driving (8 kWh between 8 AM and 6 PM) and charges
