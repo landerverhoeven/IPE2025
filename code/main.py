@@ -16,6 +16,7 @@ from Discharge_battery import discharge_battery
 from financial_evaluation import financial_evaluation
 from Conventional_charge_discharge import conventional_battery
 from EV_charge import charge_ev_weekly
+from Smartmodel import smartmodel
 
 def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     # Constants for PV system
@@ -85,8 +86,10 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
         charge_schedule, data2, end_of_day_charge_level, battery_charge = charge_battery(battery_capacity, data)
         discharge_schedule = discharge_battery(data2, end_of_day_charge_level, charge_schedule)
         smart_battery = smart_battery_merge(battery_charge, discharge_schedule)
-        evaluated_battery = smart_battery
+        smartmodell = smartmodel()
+        evaluated_battery = smartmodell
         smart_battery.to_excel('results/smart_battery.xlsx', index=False)
+        
         
     elif battery_type == 3:
         charge_schedule, data2, end_of_day_charge_level, battery_charge = charge_battery(battery_capacity, data)

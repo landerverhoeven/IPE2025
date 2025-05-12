@@ -20,6 +20,8 @@ def day_night_electricity_cost(data, battery):
     price_night = 0.1180 + 0.0117 + 0.0042 # Price for night + green energy + WKK
     injection_price = 0.0465  # Example price for injection
 
+    # charge power from smartmodel
+    
     # Initialize the cost columns
     # Calculate the difference between the load profile and the power output
     data['electricity_needed'] = (data['Volume_Afname_kWh'] - data['Power_Output_kWh'] + battery['charge_power']).apply(lambda x: x if x > 0 else 0)
