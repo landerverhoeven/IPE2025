@@ -67,7 +67,6 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     # Calculate power difference for all timestamps
     #power_difference = calculate_power_difference(data)
     data[['datetime', 'power_difference_kwh', 'power_difference_kwh_for_conventional']] = calculate_power_difference(data)
-
     # Battery
     if battery_type == 0:
         evaluated_battery = [0]
@@ -99,7 +98,6 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     variable_data, totalcost_variable = day_night_electricity_cost(data, evaluated_battery)
     totalcost_dynamic = calculate_total_dynamic_cost(data, evaluated_battery)
     capex, opex, npv_variable, npv_dynamic, payback_period_variable, payback_period_dynamic = financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment_cost, financing_rate, financing_period)
-  
 
 
 
@@ -257,7 +255,7 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     plt.show()
     '''
     plt.close('all')
-
+ # Constants for PV system
 
 # ------------------------ Variables ------------------------
 
