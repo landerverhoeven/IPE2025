@@ -36,9 +36,21 @@ def net_present_value(Total_cost_without_solar, Total_electricity_cost_solar, ca
 
 
 # Payback Period calculation
+'''
 def payback_period(Total_cost_without_solar, Total_electricity_cost_solar, capex, opex):
     annual_net_savings = Total_cost_without_solar - Total_electricity_cost_solar - opex
     payback_period = capex / annual_net_savings
+    return payback_period
+'''
+def payback_period(Total_cost_without_solar, Total_electricity_cost_solar, capex, opex, financing_rate):
+    annual_net_savings = Total_cost_without_solar - Total_electricity_cost_solar - opex
+    cumulative_discounted = 0
+    for t in range(1, 100):
+        discounted = annual_net_savings / (1 + financing_rate) ** t
+        cumulative_discounted += discounted
+        if cumulative_discounted >= capex:
+            payback_period = t
+            break
     return payback_period
 
 
@@ -63,8 +75,8 @@ def financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment
     net_present_value_dynamic = net_present_value(totalcost_without_solar_dynamic, totalcost_dynamic, capex, opex, financing_rate, financing_period)
     
     # Payback Period calculation
-    payback_period_variable = payback_period(totalcost_without_solar_variable, totalcost_variable, capex, opex)
-    payback_period_dynamic = payback_period(totalcost_without_solar_dynamic, totalcost_dynamic, capex, opex)
+    payback_period_variable = payback_period(totalcost_without_solar_variable, totalcost_variable, capex, opex, financing_rate)
+    payback_period_dynamic = payback_period(totalcost_without_solar_dynamic, totalcost_dynamic, capex, opex, financing_rate)
 
     # Print the results
     table_data = [

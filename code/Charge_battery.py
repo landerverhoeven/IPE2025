@@ -62,7 +62,7 @@ def charge_battery(battery_capacity, data):
         if i + 1 < len(days):  # Check if there is a next day
             next_day = days[i + 1]
             next_day_group = grouped.get_group(next_day)
-            temp_capacity = min(next_day_group['residual_load'].sum(),battery_capacity)
+            temp_capacity = min(next_day_group['residual_load'].sum(), battery_capacity)
         else:
             temp_capacity = 0  # No next day, so set capacity to 0
 
@@ -245,7 +245,7 @@ def smart_battery_merge(battery_charge, discharge_schedule):
         )
         # If discharge_power is not NaN, set charge_power to -1 * discharge_power
         smart_battery['charge_power'] = smart_battery.apply(
-            lambda row: -1 * row['discharge_power'] if row['discharge_power'] != 0 else row['charge_power'],
+            lambda row: row['charge_power'] - row['discharge_power'],
             axis=1
         )
         # Drop the 'discharge_power' column as it's no longer needed
@@ -296,7 +296,7 @@ def smart_battery_merge(battery_charge, discharge_schedule):
 
     plt.tight_layout()
     plt.savefig('results/smart_battery_heatmap.png')
-    plt.show()
+    #plt.show()
 
     # Zoomed-in week view (e.g., May 30 to June 5, 2000)
     week_data = df[(df['datetime'] >= pd.Timestamp('2000-05-30')) & (df['datetime'] < pd.Timestamp('2000-06-06'))]
@@ -310,7 +310,7 @@ def smart_battery_merge(battery_charge, discharge_schedule):
     plt.grid(True)
     plt.tight_layout()
     plt.savefig('results/smart_battery_week_view.png')
-    plt.show()
+    #plt.show()
 
         # Extract month
     df['month'] = df['datetime'].dt.month
@@ -338,6 +338,6 @@ def smart_battery_merge(battery_charge, discharge_schedule):
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
     plt.savefig('results/smart_battery_monthly_summary.png')
-    plt.show()
+    #plt.show()
 
     return smart_battery
