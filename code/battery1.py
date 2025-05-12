@@ -82,7 +82,7 @@ def calculate_power_difference(data):
     plt.savefig('results/power_output_difference_load_profile.png')
     plt.show()
     """
-    print('Total surplus:', data["power_difference_kwh"].sum(), 'kWh')
+    #print('Total surplus:', data["power_difference_kwh"].sum(), 'kWh')
 
     return data[['datetime', 'power_difference_kwh', 'power_difference_kwh_for_conventional']]
 

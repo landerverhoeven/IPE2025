@@ -222,7 +222,7 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
     # Save the DataFrame to an Excel file
     results_df['datetime'] = pd.to_datetime(results_df['datetime']).dt.tz_localize(None)  # Remove timezone info
     results_df.to_excel('results/ev_charge_schedule_with_charging.xlsx', index=False)
-    print(f"Charge schedule saved to {'results/ev_charge_schedule_with_charging.xlsx'}")
+    #print(f"Charge schedule saved to {'results/ev_charge_schedule_with_charging.xlsx'}")
 
         # Load data
     df = results_df.copy()
