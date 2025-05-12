@@ -104,7 +104,7 @@ def correct_load_profile(load_profile):
     return load_profile[["Datum_Startuur", "Volume_Afname_kWh"]]
 
 
-def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data):
+def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module_1, azimuth_module_2, irradiance_data):
     irradiance_data = irradiance_data.copy()  # Avoid SettingWithCopyWarning
 
     # Ensure the 'DateTime' column is in datetime format
@@ -122,10 +122,26 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
         irradiance_data[col] = pd.to_numeric(irradiance_data[col], errors='coerce')
 
     # Initialize power_output as a DataFrame
-    power_output = pd.DataFrame()
+    power_output_1 = pd.DataFrame()
+    power_output_2 = pd.DataFrame()
 
-    power_output = calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, irradiance_data)
-    
+    power_output_1 = calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module_1, irradiance_data)
+    power_output_2 = calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module_1, irradiance_data)
+
+    # Combine power_output_1 and power_output_2 by summing 'Power_Output_kWh' for matching 'DateTime'
+    power_output = pd.merge(
+        power_output_1, 
+        power_output_2, 
+        on='DateTime', 
+        suffixes=('_1', '_2')
+    )
+
+    # Sum the 'Power_Output_kWh' columns from both dataframes
+    power_output['Power_Output_kWh'] = power_output['Power_Output_kWh_1'] + power_output['Power_Output_kWh_2']
+
+    # Drop the intermediate columns
+    power_output = power_output[['DateTime', 'Power_Output_kWh']]
+
     # Set the 'DateTime' column as the index
     power_output = power_output.set_index('DateTime', drop=False)
     
@@ -190,17 +206,24 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, irr
     
     return power_output[["DateTime", "Power_Output_kWh"]]
 
-def all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, WP_panel, N_module, tilt_module, azimuth_module):
+def all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, WP_panel, N_module, tilt_module, azimuth_module_1, azimuth_module_2):
     power_output_old = power_output_old.copy()  # Avoid SettingWithCopyWarning
     load_profile_old = load_profile_old.copy()  # Avoid SettingWithCopyWarning
     belpex_data_old = belpex_data_old.copy()  # Avoid SettingWithCopyWarning
 
-    power_output = correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module, power_output_old)  # File with date-time and irradiance values
-    load_profile = correct_load_profile(load_profile_old)  # File with date-time and consumption values
-    belpex_data = correct_belpex_data(belpex_data_old)  # File with date-time and index values
+    power_output = correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module_1, azimuth_module_2, power_output_old)  # File with date-time and irradiance values
+    #load_profile = correct_load_profile(load_profile_old)  # File with date-time and consumption values
+    load_profile = load_profile_old  # File with date-time and consumption values
+    #belpex_data = correct_belpex_data(belpex_data_old)  # File with date-time and index values
+    belpex_data = belpex_data_old  # File with date-time and index values
 
-    # Make all the timestamps timezone-aware
-    belpex_data["datetime"] = belpex_data["datetime"].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
+    # Ensure datetime is timezone-aware or convert if already aware
+    belpex_data["datetime"] = pd.to_datetime(belpex_data["datetime"])  # Ensure datetime is in datetime format
+    if belpex_data["datetime"].dt.tz is None:
+        belpex_data["datetime"] = belpex_data["datetime"].dt.tz_localize("Europe/Brussels", ambiguous="NaT", nonexistent="NaT")
+    else:
+        belpex_data["datetime"] = belpex_data["datetime"].dt.tz_convert("Europe/Brussels")
+
     #power_output["DateTime"] = power_output["DateTime"].dt.tz_convert("Europe/Brussels")
     #load_profile["Datum_Startuur"] = load_profile["Datum_Startuur"].dt.tz_convert("Europe/Brussels")
 

@@ -72,6 +72,9 @@ def charge_ev_weekly(data, battery_capacity, charge_battery_schedule, max_charge
     # Convert the results list to a DataFrame for charging simulation
     results_df = pd.DataFrame(results)
 
+    # Ensure 'charge_power' column is explicitly cast to a compatible dtype
+    results_df['charge_power'] = results_df['charge_power'].astype(float)
+
     # Second iteration: Simulate charging (using power surplus)
     results_df = results_df.sort_values(by='price')  # Sort by price for charging
     for _, row in results_df.iterrows():
