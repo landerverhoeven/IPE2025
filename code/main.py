@@ -282,7 +282,7 @@ battery_type_names = {0: "No", 1: "Conventional", 2: "Smart", 3: "EV"}
 print("************* Battery type: {} Battery *************".format(battery_type_names.get(battery_type, "Unknown")))
 
 # Flat roof - Southern orientation
-tilt_module = 35    # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+tilt_module = 5    # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
 azimuth_module_1 = 180  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
 azimuth_module_2 = 180  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
 print("------------- Flat roof - Southern orientation -------------")
