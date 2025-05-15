@@ -17,6 +17,7 @@ from financial_evaluation import financial_evaluation
 from Conventional_charge_discharge import conventional_battery
 from EV_charge import charge_ev_weekly
 from Smartmodel import smartmodel
+from plot import plot_27_july
 
 def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     # Constants for PV system
@@ -35,9 +36,9 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
         battery_cost = 0
     subtotal1 = 7213.78 - battery_cost # flat mounting system
     subtotal2 = 7476.26 - battery_cost # tilted mounting system
-    if tilt_module == np.radians(5):
+    if tilt_module == 5:
         investment_cost = subtotal1
-    elif tilt_module == np.radians(35):
+    elif tilt_module == 35:
         investment_cost = subtotal2
     else:
         raise ValueError("Invalid tilt angle. Use 5° for flat roof or 35° for tilted roof.")
@@ -62,8 +63,9 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
 
     # Visualize the data
     #power_per_year(power_output, load_profile)
-    #average_power(power_output, load_profile)
+    average_power(power_output, load_profile)
     #belpex_visualisation(belpex_data)
+    plot_27_july(data)
 
     # Calculate power difference for all timestamps
     #power_difference = calculate_power_difference(data)
@@ -280,27 +282,27 @@ battery_type_names = {0: "No", 1: "Conventional", 2: "Smart", 3: "EV"}
 print("************* Battery type: {} Battery *************".format(battery_type_names.get(battery_type, "Unknown")))
 
 # Flat roof - Southern orientation
-tilt_module = np.radians(5)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
-azimuth_module_1 = np.radians(180) # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-azimuth_module_2 = np.radians(180)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+tilt_module = 35    # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+azimuth_module_1 = 180  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+azimuth_module_2 = 180  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
 print("------------- Flat roof - Southern orientation -------------")
 main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
 # Flat roof - East-West orientation
-tilt_module = np.radians(5)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
-azimuth_module_1 = np.radians(90) # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-azimuth_module_2 = np.radians(270)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+tilt_module = 5  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+azimuth_module_1 = 90 # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+azimuth_module_2 = 270  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
 print("------------- Flat roof - East-West orientation -------------")
 main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
 # Gable roof - Southern orientation
-tilt_module = np.radians(35)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
-azimuth_module_1 = np.radians(180) # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-azimuth_module_2 = np.radians(180)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+tilt_module = 35  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+azimuth_module_1 = 180 # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+azimuth_module_2 = 180  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
 print("------------- Gable roof - Southern orientation -------------")
 main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
 # Gable roof - East-West orientation
-tilt_module = np.radians(35)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
-azimuth_module_1 = np.radians(90) # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-azimuth_module_2 = np.radians(270)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+tilt_module = 35  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+azimuth_module_1 = 90 # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+azimuth_module_2 = 270  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
 print("------------- Gable roof - East-West orientation -------------")
 main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
 end_time = time.time()

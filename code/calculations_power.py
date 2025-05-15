@@ -44,12 +44,17 @@ def calculation_power_output(WP_panel, N_module, tilt_module, azimuth_module, ir
     poa = pvlib.irradiance.get_total_irradiance(
         surface_tilt=tilt_module,
         surface_azimuth=azimuth_module,
+        solar_zenith=solar_position["zenith"],
+        solar_azimuth=solar_position["azimuth"],
         dni=irradiance_data["DNI"],
         ghi=irradiance_data["GlobRad"],
         dhi=irradiance_data["DiffRad"],
-        solar_zenith=solar_position["zenith"],
-        solar_azimuth=solar_position["azimuth"],
+        dni_extra=None, 
+        airmass=None,
         albedo=albedo,
+        surface_type=None,
+        model='isotropic',
+        model_perez='allsitescomposite1990'
     )
 
     # Determine the ambient temperature column depending on the tilt angle
