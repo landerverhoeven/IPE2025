@@ -3,6 +3,7 @@ import numpy as np
 from pulp import *
 import matplotlib.pyplot as plt
 import seaborn as sns
+from pulp import LpProblem, LpVariable, LpMaximize, lpSum, LpStatus, value
 
 def smartmodel():
     # -------------------
@@ -29,7 +30,8 @@ def smartmodel():
     E_min = 0.0
     eta_c = 1
     eta_d = 1
-
+    aplha = 100
+    """
     T = len(df)
     hours = range(T)
 
@@ -77,6 +79,71 @@ def smartmodel():
     df['charge_power'] = (df['charge_kW'] - df['discharge_kW'])*dt  # Positive for charging, negative for discharging
 
     # Save results
+    df.to_excel('results/optimized_battery_schedule.xlsx', index=False)
+    """
+
+
+    # Load your data (adjust the path as needed)
+
+    # Prepare the data
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    df['residual'] = df['load'] - df['pv']
+    df['price'] = df['price'].astype(float)
+    df = df.sort_values('datetime').reset_index(drop=True)
+
+    # Model parameters
+    prices = df['price'].values
+    residual = df['residual'].values
+    N = len(df)
+    delta_t = 0.25  # 15-minute intervals
+
+
+    # Define the optimization problem
+    model = LpProblem("Maximize_Saved_Money", LpMaximize)
+
+    # Define variables
+    c = LpVariable.dicts("charge", range(N), 0, c_max)
+    d = LpVariable.dicts("discharge", range(N), 0, d_max)
+    E = LpVariable.dicts("energy", range(N), 0, E_max)
+
+    # Objective function
+    model += lpSum(prices[t] * (d[t] - c[t]) + aplha*(d[t] + c[t]) for t in range(N))
+
+    # Constraints
+    for t in range(N):
+        if t == 0:
+            model += E[t] == E_max / 2
+        else:
+            model += E[t] == E[t-1] + delta_t * (eta_c * c[t] - d[t] *(1/eta_d))
+
+        if residual[t] >= 0:
+            model += c[t] == 0
+        else:
+            model += c[t] <= -residual[t]
+
+        if residual[t] <= 0:
+            model += d[t] == 0
+        else:
+            model += d[t] <= residual[t]
+
+    # Cyclic constraint
+    model += E[N-1] == E_max / 2
+
+    # Solve
+    model.solve()
+
+    # Collect results
+    df['charge_kW'] = [value(c[t]) for t in range(N)]
+    df['discharge_kW'] = [value(d[t]) for t in range(N)]
+    df['SOC_kWh'] = [value(E[t]) for t in range(N)]
+    df['charge_power'] = (df['charge_kW'] - df['discharge_kW'])*dt  # Positive for charging, negative for discharging
+
+
+    # Total savings
+    total_savings = sum(prices[t] * (value(d[t]) - value(c[t])) for t in range(N))
+    print("Total monetary savings (€):", total_savings)
+
+    #save results
     df.to_excel('results/optimized_battery_schedule.xlsx', index=False)
 
     # -------------------
@@ -138,7 +205,7 @@ def smartmodel():
     plt.figure(figsize=(18, 8))
     sns.heatmap(
         heatmap_data,
-        cmap="RdBu_r",  # Diverging colormap: red for discharging, blue for charging
+        cmap="BrBG",  # Diverging colormap: red for discharging, blue for charging
         center=0,  # Center the colormap at 0
         cbar_kws={'label': 'Charge Power (kW)'},  # Colorbar label
         xticklabels=8,  # Show every 8th time label
@@ -164,7 +231,7 @@ def smartmodel():
     plt.grid(True)
     plt.tight_layout()
     plt.savefig('results/smart_model_week_view.png')
-    #plt.show()
+    plt.show()
 
         # Extract month
     df['month'] = df['datetime'].dt.month

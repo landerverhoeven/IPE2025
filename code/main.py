@@ -134,9 +134,9 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
         (data['datetime'] >= pd.Timestamp('2000-07-27')) &
         (data['datetime'] < pd.Timestamp('2000-07-28'))
     ]
-    july_1st_smart_schedule = smart_battery[
-        (smart_battery['datetime'] >= pd.Timestamp('2000-07-27')) &
-        (smart_battery['datetime'] < pd.Timestamp('2000-07-28'))
+    july_1st_smart_schedule = smartmodell[
+        (smartmodell['datetime'] >= pd.Timestamp('2000-07-27')) &
+        (smartmodell['datetime'] < pd.Timestamp('2000-07-28'))
     ]
     # Plot the power output, load profile, and electricity price
     fig, ax1 = plt.subplots(figsize=(12, 6))
@@ -166,7 +166,7 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     # Adjust layout and save the plot
     fig.tight_layout()
     plt.savefig('results/power_output_load_profile_price_charge_discharge_july_1st.png')
-    #plt.show()
+    plt.show()
 
     data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
     data.to_excel('results/data.xlsx', index=False)
@@ -210,7 +210,7 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     cbar.ax.tick_params(labelsize=14)  # Set font size for colorbar ticks
     plt.tight_layout()
     plt.savefig('results/electricty_price_heatmap.png')
-    #plt.show()
+    plt.show()
 
 
 
@@ -285,6 +285,7 @@ azimuth_module_1 = np.radians(180) # Panel azimuth angle (radians). 90°: Facing
 azimuth_module_2 = np.radians(180)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
 print("------------- Flat roof - Southern orientation -------------")
 main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
+"""
 # Flat roof - East-West orientation
 tilt_module = np.radians(5)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
 azimuth_module_1 = np.radians(90) # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
@@ -303,5 +304,6 @@ azimuth_module_1 = np.radians(90) # Panel azimuth angle (radians). 90°: Facing 
 azimuth_module_2 = np.radians(270)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
 print("------------- Gable roof - East-West orientation -------------")
 main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
+"""
 end_time = time.time()
 print("Execution time: {:.2f} seconds".format(end_time - start_time))
