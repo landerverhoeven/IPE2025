@@ -34,14 +34,14 @@ def average_power(power_output, load_profile):
     plt.figure(figsize=(14, 8))
     plt.plot(average_power_output.index, average_power_output.values, marker='none', linestyle='-', color='b', label='Average Power Output')
     plt.plot(average_load.index, average_load.values, marker='none', linestyle='-', color='r', label='Average Load')
-    plt.xlabel("Time of Day (minutes since midnight)")
+    plt.xlabel("Time of Day")
     plt.ylabel("Energy (kWh)")
-    plt.title("Average Power Output and Load for Every 15 Minutes")
+    plt.title("Average Power Output and Load")
     plt.legend()
     plt.grid()
     plt.xticks(np.arange(0, 1441, 60), labels=[f'{h}:00' for h in range(25)], rotation=45)
     plt.tight_layout()
-    #plt.show()
+    plt.show()
 
     return average_power_output, average_load
 
@@ -83,7 +83,7 @@ def power_per_year(power_output, load_profile):
     plt.grid(True)
     plt.xticks(rotation=45)
     plt.tight_layout()
-    #plt.show()
+    plt.show()
 
 def belpex_visualisation(belpex_data):
     belpex_data = belpex_data.copy()
@@ -101,7 +101,7 @@ def belpex_visualisation(belpex_data):
     plt.grid(True)
     plt.xticks(rotation=45)
     plt.tight_layout()
-    #plt.show()
+    plt.show()
 
 
 def plot_27_july(data):
@@ -115,14 +115,16 @@ def plot_27_july(data):
     ]
     
     # Plot the power output, load profile, and electricity price
-    fig, ax1 = plt.subplots(figsize=(12, 6))
+    plt.figure(figsize=(12, 6))
 
     # Plot power output and load profile on the primary y-axis
-    ax1.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
+    plt.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
 
     # Set axis labels with larger font size
-    ax1.set_xlabel('Datetime', fontsize=14)
-    ax1.set_ylabel('Energy (kWh)', color='black', fontsize=14)
-    ax1.tick_params(axis='y', labelcolor='black', labelsize=12)
-    ax1.tick_params(axis='x', labelsize=12)
-    ax1.grid(True)
+    plt.xlabel('Datetime', fontsize=14)
+    plt.ylabel('Energy (kWh)', color='black', fontsize=14)
+    plt.tick_params(axis='y', labelcolor='black', labelsize=12)
+    plt.tick_params(axis='x', labelsize=12)
+    plt.legend()
+    plt.grid(True)
+    plt.show()

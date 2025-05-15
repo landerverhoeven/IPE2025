@@ -65,6 +65,7 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     #power_per_year(power_output, load_profile)
     #average_power(power_output, load_profile)
     #belpex_visualisation(belpex_data)
+    #plot_27_july(data)
 
     # Calculate power difference for all timestamps
     #power_difference = calculate_power_difference(data)
