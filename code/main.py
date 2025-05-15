@@ -133,9 +133,9 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
         (data['datetime'] >= pd.Timestamp('2000-07-27')) &
         (data['datetime'] < pd.Timestamp('2000-07-28'))
     ]
-    july_1st_smart_schedule = smart_battery[
-        (smart_battery['datetime'] >= pd.Timestamp('2000-07-27')) &
-        (smart_battery['datetime'] < pd.Timestamp('2000-07-28'))
+    july_1st_smart_schedule = smartmodell[
+        (smartmodell['datetime'] >= pd.Timestamp('2000-07-27')) &
+        (smartmodell['datetime'] < pd.Timestamp('2000-07-28'))
     ]
     # Plot the power output, load profile, and electricity price
     fig, ax1 = plt.subplots(figsize=(12, 6))
@@ -165,7 +165,7 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     # Adjust layout and save the plot
     fig.tight_layout()
     plt.savefig('results/power_output_load_profile_price_charge_discharge_july_1st.png')
-    #plt.show()
+    plt.show()
 
     data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
     data.to_excel('results/data.xlsx', index=False)
@@ -209,7 +209,7 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     cbar.ax.tick_params(labelsize=14)  # Set font size for colorbar ticks
     plt.tight_layout()
     plt.savefig('results/electricty_price_heatmap.png')
-    #plt.show()
+    plt.show()
 
 
 
