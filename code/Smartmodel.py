@@ -23,9 +23,9 @@ def smartmodel():
     df['residual'] = df['load'] - df['pv']
 
     # Battery specs
-    c_max = 6.5
-    d_max = 6.5
-    E_max = 6.5
+    c_max = 5.85
+    d_max = 5.85
+    E_max = 5.85
     E_min = 0.0
     eta_c = 1
     eta_d = 1
