@@ -17,6 +17,7 @@ from financial_evaluation import financial_evaluation
 from Conventional_charge_discharge import conventional_battery
 from EV_charge import charge_ev_weekly
 from Smartmodel import smartmodel
+from plot import plot_27_july
 
 def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     # Constants for PV system
@@ -36,9 +37,9 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     price_1panel = 52  # Price per panel (in euros)
     subtotal1 = (7213.78-3289.04)*N_module/24 + battery_cost  # flat mounting system
     subtotal2 = (7476.26-3289.04)*N_module/24 + battery_cost  # tilted mounting system
-    if tilt_module == np.radians(5):
+    if tilt_module == 5:
         investment_cost = subtotal1
-    elif tilt_module == np.radians(35):
+    elif tilt_module == 35:
         investment_cost = subtotal2
     else:
         raise ValueError("Invalid tilt angle. Use 5° for flat roof or 35° for tilted roof.")
@@ -282,7 +283,6 @@ for battery_type in range(4):
     azimuth_module_2 = np.radians(180)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
     print("------------- Flat roof - Southern orientation -------------")
     main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
-    exit()
     # Flat roof - East-West orientation
     tilt_module = np.radians(5)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
     azimuth_module_1 = np.radians(90) # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
