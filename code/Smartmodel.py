@@ -72,8 +72,8 @@ def smartmodel():
     df['discharge_kW'] = [value(d[t]) for t in hours]
     df['SOC_kWh'] = [value(SOC[t]) for t in hours]
 
-    print("Optimization status:", LpStatus[prob.status])
-    print("Total energy cost (€):", value(prob.objective))
+    #print("Optimization status:", LpStatus[prob.status])
+    #print("Total energy cost (€):", value(prob.objective))
     df['charge_power'] = (df['charge_kW'] - df['discharge_kW'])*dt  # Positive for charging, negative for discharging
 
     # Save results
@@ -114,7 +114,7 @@ def smartmodel():
     # Format x-axis
     plt.gcf().autofmt_xdate()
     plt.tight_layout()
-    plt.show()
+    #plt.show()
 
     # -------------------
     # PLOT HEATMAP
@@ -151,5 +151,5 @@ def smartmodel():
     plt.yticks(fontsize=12)
     plt.tight_layout()
     plt.savefig('results/charge_power_heatmap.png')
-    plt.show()
+    #plt.show()
     return df
