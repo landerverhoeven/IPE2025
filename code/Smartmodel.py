@@ -23,12 +23,12 @@ def smartmodel():
     df['residual'] = df['load'] - df['pv']
 
     # Battery specs
-    c_max = 3.0
-    d_max = 3.0
-    E_max = 10.0
+    c_max = 6.5
+    d_max = 6.5
+    E_max = 6.5
     E_min = 0.0
-    eta_c = 0.95
-    eta_d = 0.95
+    eta_c = 1
+    eta_d = 1
 
     T = len(df)
     hours = range(T)
@@ -150,6 +150,48 @@ def smartmodel():
     plt.xticks(fontsize=12, rotation=45)
     plt.yticks(fontsize=12)
     plt.tight_layout()
-    plt.savefig('results/charge_power_heatmap.png')
+    plt.savefig('results/smart_model_heatmap.png')
     plt.show()
+    # Zoomed-in week view (e.g., May 30 to June 5, 2000)
+    week_data = df[(df['datetime'] >= pd.Timestamp('2000-05-30')) & (df['datetime'] < pd.Timestamp('2000-06-06'))]
+
+    plt.figure(figsize=(16, 6))
+    plt.plot(week_data['datetime'], week_data['charge_power'], color='teal', linewidth=1)
+    plt.axhline(0, color='black', linestyle='--', linewidth=0.8)
+    plt.title("Smart Battery Charging/Discharging – Week View (May 30 to June 5)")
+    plt.ylabel("Charge Power (kW)")
+    plt.xlabel("Datetime")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig('results/smart_model_week_view.png')
+    #plt.show()
+
+        # Extract month
+    df['month'] = df['datetime'].dt.month
+
+    # Separate charge and discharge values
+    df['charged'] = df['charge_power'].clip(lower=0)  # Only positive values (charging)
+    df['discharged'] = -df['charge_power'].clip(upper=0)  # Negative values flipped positive (discharging)
+
+    # Monthly summary
+    monthly_summary = df.groupby('month')[['charged', 'discharged']].sum()
+
+    # Plot
+    plt.figure(figsize=(10, 6))
+    monthly_summary.plot(kind='bar', stacked=False, color=['green', 'blue'])
+    plt.title("Monthly Energy Charged and Discharged by Smart Battery")
+    plt.xlabel("Month")
+    plt.ylabel("Energy (kWh)")
+    plt.xticks(
+        ticks=range(0, 12),
+        labels=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        rotation=45
+    )
+    plt.legend(["Charged", "Discharged"])
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.savefig('results/smart_model_monthly_summary.png')
+    #plt.show()
+
     return df
