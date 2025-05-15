@@ -102,3 +102,27 @@ def belpex_visualisation(belpex_data):
     plt.xticks(rotation=45)
     plt.tight_layout()
     #plt.show()
+
+
+def plot_27_july(data):
+    data = data.copy()
+    data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(None)
+    
+    # Filter the data for July 1st
+    july_1st = data[
+        (data['datetime'] >= pd.Timestamp('2000-07-27')) &
+        (data['datetime'] < pd.Timestamp('2000-07-28'))
+    ]
+    
+    # Plot the power output, load profile, and electricity price
+    fig, ax1 = plt.subplots(figsize=(12, 6))
+
+    # Plot power output and load profile on the primary y-axis
+    ax1.plot(july_1st['datetime'], july_1st['Power_Output_kWh'], label='Power Output (kWh)', color='blue')
+
+    # Set axis labels with larger font size
+    ax1.set_xlabel('Datetime', fontsize=14)
+    ax1.set_ylabel('Energy (kWh)', color='black', fontsize=14)
+    ax1.tick_params(axis='y', labelcolor='black', labelsize=12)
+    ax1.tick_params(axis='x', labelsize=12)
+    ax1.grid(True)

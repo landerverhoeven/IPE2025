@@ -74,8 +74,8 @@ def smartmodel():
     df['discharge_kW'] = [value(d[t]) for t in hours]
     df['SOC_kWh'] = [value(SOC[t]) for t in hours]
 
-    print("Optimization status:", LpStatus[prob.status])
-    print("Total energy cost (€):", value(prob.objective))
+    #print("Optimization status:", LpStatus[prob.status])
+    #print("Total energy cost (€):", value(prob.objective))
     df['charge_power'] = (df['charge_kW'] - df['discharge_kW'])*dt  # Positive for charging, negative for discharging
 
     # Save results
@@ -181,7 +181,7 @@ def smartmodel():
     # Format x-axis
     plt.gcf().autofmt_xdate()
     plt.tight_layout()
-    plt.show()
+    #plt.show()
 
     # -------------------
     # PLOT HEATMAP
@@ -218,7 +218,7 @@ def smartmodel():
     plt.yticks(fontsize=12)
     plt.tight_layout()
     plt.savefig('results/smart_model_heatmap.png')
-    plt.show()
+    #plt.show()
     # Zoomed-in week view (e.g., May 30 to June 5, 2000)
     week_data = df[(df['datetime'] >= pd.Timestamp('2000-05-30')) & (df['datetime'] < pd.Timestamp('2000-06-06'))]
 

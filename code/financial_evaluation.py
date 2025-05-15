@@ -83,7 +83,7 @@ def financial_evaluation(data, totalcost_variable, totalcost_dynamic, investment
         ["Total electricity cost without solar", f"{totalcost_without_solar_variable:.2f} euros", f"{totalcost_without_solar_dynamic:.2f} euros"],
         ["Total electricity Cost With solar", f"{totalcost_variable:.2f} euros", f"{totalcost_dynamic:.2f} euros"],
         ["Net Present Value", f"{net_present_value_variable:.2f} euros", f"{net_present_value_dynamic:.2f} euros"],
-        ["Payback Period", f"{payback_period_variable:.0f} years", f"{payback_period_dynamic:.0f} years"],
+        ["Payback Period", f"{payback_period_variable:.1f} years", f"{payback_period_dynamic:.0f} years"],
     ]
     print(tabulate(table_data, headers=["", "Variable", "Dynamic"], tablefmt="grid"))
 

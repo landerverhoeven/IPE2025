@@ -17,11 +17,12 @@ from financial_evaluation import financial_evaluation
 from Conventional_charge_discharge import conventional_battery
 from EV_charge import charge_ev_weekly
 from Smartmodel import smartmodel
+from plot import plot_27_july
 
 def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     # Constants for PV system
     WP_panel = 445  # Panel power (W)
-    N_module = 24  # Number of panels
+    N_module = 12  # Number of panels
 
     battery_capacity = 6.5  # Battery capacity (kWh)
     battery_capacity_ev = 65  # EV battery capacity (kWh)
@@ -30,19 +31,20 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
 
     # Costs
     if battery_type == 0 or battery_type == 3:
-        battery_cost = 3289.04
-    else:
         battery_cost = 0
-    subtotal1 = 7213.78 - battery_cost # flat mounting system
-    subtotal2 = 7476.26 - battery_cost # tilted mounting system
-    if tilt_module == np.radians(5):
+    else:
+        battery_cost = 3289.04
+    price_1panel = 52  # Price per panel (in euros)
+    subtotal1 = (7213.78-3289.04)*N_module/24 + battery_cost  # flat mounting system
+    subtotal2 = (7476.26-3289.04)*N_module/24 + battery_cost  # tilted mounting system
+    if tilt_module == 5:
         investment_cost = subtotal1
-    elif tilt_module == np.radians(35):
+    elif tilt_module == 35:
         investment_cost = subtotal2
     else:
         raise ValueError("Invalid tilt angle. Use 5° for flat roof or 35° for tilted roof.")
     financing_rate = 0.02  # Example financing rate (5%)
-    financing_period = 20  # Example financing period (20 years)
+    financing_period = 10  # Example financing period (20 years)
     
     
 
@@ -59,7 +61,6 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
     #load_profile_old = pd.read_csv('data/Load_profile_8.csv', parse_dates=['Datum_Startuur'])
     #belpex_data_old = pd.read_csv('data/Belpex_2024.csv', delimiter=';', parse_dates=['Date'], encoding='ISO-8859-1', dayfirst=True)
     data, power_output, load_profile, belpex_data = all_correct_data_files(power_output_old, load_profile_old, belpex_data_old, WP_panel, N_module, tilt_module, azimuth_module_1, azimuth_module_2)
-
     # Visualize the data
     #power_per_year(power_output, load_profile)
     #average_power(power_output, load_profile)
@@ -88,8 +89,6 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
         smart_battery = smart_battery_merge(battery_charge, discharge_schedule)
         smartmodell = smartmodel()
         evaluated_battery = smartmodell
-        smart_battery.to_excel('results/smart_battery.xlsx', index=False)
-        
         
     elif battery_type == 3:
         charge_schedule, data2, end_of_day_charge_level, battery_charge = charge_battery(battery_capacity, data)
@@ -273,37 +272,35 @@ def main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type):
 # ------------------------ Variables ------------------------
 
 start_time = time.time()
-battery_type = 2
-#for battery_type in range(4):
-# Mapping battery types to their names
-battery_type_names = {0: "No", 1: "Conventional", 2: "Smart", 3: "EV"}
-print("************* Battery type: {} Battery *************".format(battery_type_names.get(battery_type, "Unknown")))
+for battery_type in range(4):
+    # Mapping battery types to their names
+    battery_type_names = {0: "No", 1: "Conventional", 2: "Smart", 3: "EV"}
+    print("************* Battery type: {} Battery *************".format(battery_type_names.get(battery_type, "Unknown")))
 
-# Flat roof - Southern orientation
-tilt_module = np.radians(5)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
-azimuth_module_1 = np.radians(180) # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-azimuth_module_2 = np.radians(180)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-print("------------- Flat roof - Southern orientation -------------")
-main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
-"""
-# Flat roof - East-West orientation
-tilt_module = np.radians(5)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
-azimuth_module_1 = np.radians(90) # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-azimuth_module_2 = np.radians(270)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-print("------------- Flat roof - East-West orientation -------------")
-main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
-# Gable roof - Southern orientation
-tilt_module = np.radians(35)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
-azimuth_module_1 = np.radians(180) # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-azimuth_module_2 = np.radians(180)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-print("------------- Gable roof - Southern orientation -------------")
-main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
-# Gable roof - East-West orientation
-tilt_module = np.radians(35)  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
-azimuth_module_1 = np.radians(90) # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-azimuth_module_2 = np.radians(270)  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
-print("------------- Gable roof - East-West orientation -------------")
-main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
-"""
+    # Flat roof - Southern orientation
+    tilt_module = 5  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+    azimuth_module_1 = 180 # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+    azimuth_module_2 = 180  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+    print("------------- Flat roof - Southern orientation -------------")
+    main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
+    # Flat roof - East-West orientation
+    tilt_module = 5  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+    azimuth_module_1 = 90 # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+    azimuth_module_2 = 270  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+    print("------------- Flat roof - East-West orientation -------------")
+    main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
+    # Gable roof - Southern orientation
+    tilt_module = 35  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+    azimuth_module_1 = 180 # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+    azimuth_module_2 = 180  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+    print("------------- Gable roof - Southern orientation -------------")
+    main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
+    # Gable roof - East-West orientation
+    tilt_module = 35  # Panel tilt angle (radians). 5°: Flat roof, 30°-40°: Tilted roof.
+    azimuth_module_1 = 90 # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+    azimuth_module_2 = 270  # Panel azimuth angle (radians). 90°: Facing east., 180°: Facing south., 270°: Facing west, 0°: Facing north.
+    print("------------- Gable roof - East-West orientation -------------")
+    main(tilt_module, azimuth_module_1, azimuth_module_2, battery_type)
+
 end_time = time.time()
 print("Execution time: {:.2f} seconds".format(end_time - start_time))

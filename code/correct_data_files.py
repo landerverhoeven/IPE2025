@@ -126,7 +126,7 @@ def correct_irradiance_data(WP_panel, N_module, tilt_module, azimuth_module_1, a
     power_output_2 = pd.DataFrame()
 
     power_output_1 = calculation_power_output(WP_panel, N_module/2, tilt_module, azimuth_module_1, irradiance_data)
-    power_output_2 = calculation_power_output(WP_panel, N_module/2, tilt_module, azimuth_module_1, irradiance_data)
+    power_output_2 = calculation_power_output(WP_panel, N_module/2, tilt_module, azimuth_module_2, irradiance_data)
 
     # Combine power_output_1 and power_output_2 by summing 'Power_Output_kWh' for matching 'DateTime'
     power_output = pd.merge(
